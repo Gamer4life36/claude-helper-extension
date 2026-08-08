@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claude Companion (Dev)",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Configurable browser-control helper. You define capabilities, forbidden sites (incl. adult-content blocking), and per-site confirm modes. Unofficial; not affiliated with Anthropic.",
   "icons": {
     "16": "icons/icon16.png",
