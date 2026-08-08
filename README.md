@@ -158,7 +158,7 @@ help                                          show all commands
 > API mode (below) — or just ask Claude directly for design/writing.
 
 ## Install (unpacked)
-**Easiest:** download `claude-helper-extension.zip` from the
+**Easiest:** download `claude-companion-extension.zip` from the
 [Releases](https://github.com/Gamer4life36/claude-helper-extension/releases) page and unzip it.
 Or `git clone` this repo. Then:
 1. `chrome://extensions` → enable **Developer mode**

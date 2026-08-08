@@ -17,7 +17,7 @@ It runs **100% on your machine, for free** — no account, no API key, no cost t
 
 **Option A — Download the zip (easiest)**
 1. Go to the [**Releases**](https://github.com/Gamer4life36/claude-helper-extension/releases) page.
-2. Download **`claude-helper-extension.zip`** from the latest release.
+2. Download **`claude-companion-extension.zip`** from the latest release.
 3. **Unzip it** somewhere you'll keep it (e.g. `Documents\claude-helper-extension`).
    *(Don't run it from inside the zip — Chrome needs a real folder.)*
 
