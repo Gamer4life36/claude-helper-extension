@@ -12,18 +12,27 @@
       button { background: #f5f5f5; cursor: pointer; }
       button:hover { background: #eaeaea; }
       button.act { background: #e8f0ff; }
-      pre { background: #111; color: #9fe6a0; padding: 8px; border-radius: 6px; max-height: 220px; overflow: auto; font-size: 11px; white-space: pre-wrap; margin-top: 8px; }
+      pre { background: #111; color: #9fe6a0; padding: 8px; border-radius: 6px; max-height: 200px; overflow: auto; font-size: 11px; white-space: pre-wrap; margin-top: 8px; }
       .safe { color: #2e7d32; } .warn { color: #b3261e; font-weight: 600; }
+      /* autocomplete dropdown */
+      #searchWrap { position: relative; }
+      #suggest { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #ccc; border-top: 0; border-radius: 0 0 8px 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); z-index: 50; max-height: 240px; overflow: auto; display: none; }
+      .sg { display: flex; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; font-size: 13px; }
+      .sg:hover, .sg.active { background: #eef4ff; }
+      .sg .name { font-weight: 600; } .sg .dom { color: #888; font-size: 11px; margin-left: auto; }
+      .sg .fav { width: 16px; text-align: center; }
     </style>
   </head>
   <body>
     <h1>Claude Helper — Browser Control</h1>
-    <div class="sub">Full automation. Sensitive sites (logins/banks/payments) ask before each action.</div>
+    <div class="sub">Type a site name, a URL, or a search — it auto-resolves.</div>
 
-    <div class="row">
-      <input id="url" placeholder="https://example.com" />
-      <button class="act" id="open">Open tab</button>
+    <div class="row" id="searchWrap">
+      <input id="url" placeholder="Search or site name — e.g. Pinterest" autocomplete="off" />
+      <button class="act" id="open">Go</button>
+      <div id="suggest"></div>
     </div>
+
     <div class="row">
       <button class="act" id="tabs">List tabs</button>
       <button class="act" id="read">Read page (get refs)</button>
