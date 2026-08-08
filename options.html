@@ -4,38 +4,47 @@
   <meta charset="utf-8" />
   <title>Claude Helper — Policy</title>
   <style>
-    body { font-family: Segoe UI, Arial, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; color:#1a1a1a; }
+    body { font-family: Segoe UI, Arial, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color:#1a1a1a; }
     h1 { font-size: 20px; } h2 { font-size: 15px; margin-top: 22px; border-bottom:1px solid #eee; padding-bottom:4px; }
     .cap { display:inline-flex; align-items:center; gap:6px; width:48%; margin:4px 0; font-size:14px; }
     label.rule { display:flex; gap:8px; align-items:flex-start; margin:8px 0; font-size:14px; }
     .rule small { color:#666; display:block; }
-    textarea { width:100%; height:90px; font-family:Consolas,monospace; font-size:12px; padding:8px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+    textarea { width:100%; height:80px; font-family:Consolas,monospace; font-size:12px; padding:8px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
     .desc { color:#555; font-size:12px; margin:2px 0 8px; }
     .forbid { color:#b3261e; } .confirm { color:#b06a00; } .allow { color:#2e7d32; }
-    button { padding:10px 18px; font-size:14px; border-radius:8px; border:0; background:#3b82f6; color:#fff; cursor:pointer; margin-top:18px; }
+    button { padding:8px 14px; font-size:13px; border-radius:8px; border:0; background:#3b82f6; color:#fff; cursor:pointer; }
+    #save { padding:10px 18px; font-size:14px; margin-top:18px; }
     #saved { color:#2e7d32; margin-left:10px; font-size:13px; }
+    .site { display:flex; gap:8px; align-items:center; margin:5px 0; }
+    .site input { flex:1; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:13px; }
+    .site select { padding:6px; border-radius:6px; border:1px solid #ccc; font-size:13px; }
+    .site .rm { background:#eee; color:#333; padding:6px 10px; }
+    .addbtn { background:#eef4ff; color:#1a56db; margin-top:6px; }
   </style>
 </head>
 <body>
   <h1>Claude Helper — Capabilities & Limits</h1>
-  <p class="desc">Three tiers: <b class="allow">Allowed</b> runs directly · <b class="confirm">Confirm</b> asks each time · <b class="forbid">Forbidden</b> never runs.</p>
+  <p class="desc">Tiers: <b class="allow">Allowed</b> runs directly · <b class="confirm">Confirm</b> = ask each time <i>or</i> always allow (your choice per site) · <b class="forbid">Forbidden</b> never runs.</p>
 
   <h2 class="allow">✅ Capabilities (what it's allowed to do at all)</h2>
   <div id="caps"></div>
 
   <h2 class="forbid">⛔ Hard limits (never allowed)</h2>
-  <label class="rule"><input type="checkbox" id="forbidPasswordTyping" /> <span>Never type into password fields <small>Blocks the extension from ever entering a password, even with approval.</small></span></label>
-  <label class="rule"><input type="checkbox" id="forbidSubmitOnSensitive" /> <span>Never submit forms on sensitive pages <small>Blocks all form submits on banking/login/payment pages entirely.</small></span></label>
-  <label class="rule"><input type="checkbox" id="allowBridgeInv" /> <span>Disable the Claude auto-bridge <small>When checked, only YOU (via the popup) can drive it — Claude can't act on its own.</small></span></label>
+  <label class="rule"><input type="checkbox" id="forbidPasswordTyping" /> <span>Never type into password fields <small>Blocks entering a password even with approval.</small></span></label>
+  <label class="rule"><input type="checkbox" id="forbidSubmitOnSensitive" /> <span>Never submit forms on sensitive pages</span></label>
+  <label class="rule"><input type="checkbox" id="allowBridgeInv" /> <span>Disable the Claude auto-bridge <small>Only you (popup) can drive it.</small></span></label>
 
-  <h2 class="forbid">⛔ Forbidden sites (no action ever — not even reading)</h2>
-  <div class="desc">One host per line, e.g. <code>mybank.com</code>. The extension refuses everything on these.</div>
-  <textarea id="forbiddenDomains" placeholder="mybank.com&#10;myinvestments.com"></textarea>
+  <h2 class="forbid">🚫 Forbidden sites — no action ever</h2>
+  <div class="desc"><b>Blocked keywords</b> — if a site's host contains any of these it's blocked (catches adult sites not on the list below). One per line:</div>
+  <textarea id="forbiddenKeywords" placeholder="porn&#10;xxx&#10;nsfw"></textarea>
+  <div class="desc" style="margin-top:8px"><b>Blocked domains</b> — exact hosts to block. One per line:</div>
+  <textarea id="forbiddenDomains" placeholder="pornhub.com&#10;example-adult.com"></textarea>
 
-  <h2 class="confirm">⚠️ Confirm before acting (asks each time)</h2>
+  <h2 class="confirm">⚠️ Sensitive sites — Ask each time / Always allow</h2>
   <label class="rule"><input type="checkbox" id="confirmAllSubmits" /> <span>Always confirm before submitting any form</span></label>
-  <div class="desc" style="margin-top:8px">Sensitive hosts — one per line (banks, bills, payments). Actions here require approval:</div>
-  <textarea id="confirmDomains"></textarea>
+  <div class="desc" style="margin-top:8px">Per-site behavior for banks, bills, payments, logins:</div>
+  <div id="confirmRows"></div>
+  <button class="addbtn" id="addSite">+ Add site</button>
 
   <div><button id="save">Save policy</button><span id="saved"></span></div>
   <script src="options.js"></script>

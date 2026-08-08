@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Claude Helper (Dev)",
-  "version": "0.2.0",
-  "description": "Configurable browser-control helper. You define what it can do (capabilities) and what is strictly forbidden. Sensitive sites ask per action.",
+  "version": "0.3.0",
+  "description": "Configurable browser-control helper. You define capabilities, forbidden sites (incl. adult-content blocking), and per-site confirm modes (ask each time / always allow).",
   "permissions": [
     "activeTab",
     "tabs",

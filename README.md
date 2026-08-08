@@ -9,8 +9,8 @@ Every action is bounded by a **user-defined policy** with three tiers:
 | Tier | Behavior |
 |------|----------|
 | ✅ **Allowed** | runs directly |
-| ⚠️ **Confirm** | asks you to approve *each time* (banks, logins, bills, payments) |
-| ⛔ **Forbidden** | never runs (hard block) |
+| ⚠️ **Confirm** | per-site: **ask each time** *or* **always allow** (banks, logins, bills, payments) |
+| ⛔ **Forbidden** | never runs — by domain **or keyword** (adult sites blocked by default) |
 
 You decide what it *can* do and what is *strictly off-limits* — in the Options page.
 
