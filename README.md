@@ -1,5 +1,8 @@
 # Claude Helper — Configurable Browser Assistant
 
+> 🧪 **Testing this?** Start with **[TESTERS.md](TESTERS.md)** — install steps + commands to try.
+> Grab the ready-to-load zip from the **[Releases](https://github.com/Gamer4life36/claude-helper-extension/releases)** page.
+
 A personal Chrome extension (Manifest V3). Click the icon → a **chat panel docks to
 the right of the browser**, where you type commands to control the page. It has
 **broad host permissions** (works even on sites that block the official AI
@@ -124,9 +127,14 @@ help                                          show all commands
 > API mode (below) — or just ask Claude directly for design/writing.
 
 ## Install (unpacked)
+**Easiest:** download `claude-helper-extension.zip` from the
+[Releases](https://github.com/Gamer4life36/claude-helper-extension/releases) page and unzip it.
+Or `git clone` this repo. Then:
 1. `chrome://extensions` → enable **Developer mode**
-2. **Load unpacked** → select this folder
+2. **Load unpacked** → select the folder (the one containing `manifest.json`)
 3. Click the icon → the chat docks on the right. Set your policy in **Options**.
+
+Full step-by-step for non-developers: **[TESTERS.md](TESTERS.md)**.
 
 ## Optional: Full Claude via the bridge (needs an API key)
 `server/` runs a local agent loop that relays Claude's tool calls to the extension.
