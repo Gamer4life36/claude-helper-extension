@@ -112,6 +112,8 @@ function updateMode() {
   else modeEl.innerHTML = bridgeUp
     ? '<span class="dot g"></span>Claude API — bridge connected'
     : '<span class="dot" style="background:#b3261e"></span>Claude API — start the bridge (node server.js) or add a key';
+  // show the "add API key" helper only when API mode is chosen but not yet connected
+  document.getElementById("apiHelp").style.display = (!freeMode && !bridgeUp) ? "block" : "none";
 }
 async function checkMode() {
   try { const r = await (await fetch(BRIDGE + "/log")).json(); bridgeUp = !!r.connected; } catch { bridgeUp = false; }
