@@ -74,7 +74,8 @@
     if (isForbidden()) return { ok: false, forbidden: true, error: "forbidden by policy: this site is blocked (" + host() + ")" };
     if (kind === "read") return { ok: true, page: readPage() };
 
-    const el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
+    let el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
+    if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form"); // submit: fall back to the page's form
     if (!el) return { ok: false, error: "element not found — run read_page first to get refs." };
     const isPw = (el.getAttribute("type") || "").toLowerCase() === "password";
 

@@ -51,8 +51,9 @@ async function getPolicy() {
   return merged;
 }
 async function seedPolicy() { await chrome.storage.local.set({ policy: await getPolicy() }); }
-chrome.runtime.onInstalled.addListener(seedPolicy);
+chrome.runtime.onInstalled.addListener(() => { seedPolicy(); try { chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }); } catch {} });
 seedPolicy(); // also on service-worker start, to fix already-installed copies
+try { chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }); } catch {}
 
 const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch { return ""; } };
 const suffixMatch = (host, list) => (list || []).some((d) => host === d || host.endsWith("." + d));
@@ -105,6 +106,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       switch (msg?.type) {
         case "GET_POLICY": return sendResponse({ ok: true, policy: await getPolicy(), defaults: DEFAULT_POLICY });
         case "SET_POLICY": await chrome.storage.local.set({ policy: msg.policy }); return sendResponse({ ok: true });
+        case "EXEC": return sendResponse(await execTool(msg.tool, msg.args || {}));
         case "OPEN_TAB": return sendResponse(await execTool("open_tab", { url: msg.url, active: msg.active }));
         case "LIST_TABS": return sendResponse(await execTool("list_tabs"));
         case "PAGE_ACTION": { const m = { read: "read_page", click: "click", type: "type", submit: "submit" }; return sendResponse(await execTool(m[msg.action.kind], msg.action)); }
