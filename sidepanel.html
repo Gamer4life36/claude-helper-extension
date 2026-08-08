@@ -10,6 +10,9 @@
     header .title { font-weight: 700; font-size: 14px; }
     header .mode { font-size: 11px; margin-top: 3px; }
     header a { color: #7fb0ff; cursor: pointer; float: right; font-size: 11px; text-decoration: none; }
+    #modeToggle { margin-top: 7px; display: inline-flex; border: 1px solid #2a3340; border-radius: 8px; overflow: hidden; }
+    .seg { background: #161b22; color: #9aa4b2; border: 0; padding: 4px 11px; font-size: 11px; cursor: pointer; }
+    .seg.active { background: #1f4bd8; color: #fff; }
     .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
     .g { background: #48c774; } .b { background: #3b82f6; }
     #log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -28,6 +31,10 @@
   <header>
     <a id="policy">⚙ Policy</a>
     <div class="title">🤖 Claude Helper</div>
+    <div id="modeToggle">
+      <button id="mFree" class="seg active">🔵 Free mode</button>
+      <button id="mApi" class="seg">🟢 Claude API</button>
+    </div>
     <div class="mode" id="mode"><span class="dot b"></span>checking…</div>
   </header>
   <div id="log"></div>

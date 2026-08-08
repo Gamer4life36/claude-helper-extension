@@ -101,13 +101,25 @@ async function interpret(text) {
   const url = resolve(t); const r = await exec("open_tab", { url }); return { text: r.ok ? "Opened " + url : "🚫 " + r.error, blocked: !r.ok };
 }
 
-// ── Full-Claude mode via the local bridge ──────────────────────────────────
-let bridgeUp = false;
+// ── Mode: Free (keyless) vs Claude API (bridge) — user-selectable, default Free ─
+let bridgeUp = false, freeMode = true;
+chrome.storage.local.get("freeMode").then((v) => { if (typeof v.freeMode === "boolean") freeMode = v.freeMode; updateMode(); });
+
+function updateMode() {
+  document.getElementById("mFree").classList.toggle("active", freeMode);
+  document.getElementById("mApi").classList.toggle("active", !freeMode);
+  if (freeMode) modeEl.innerHTML = '<span class="dot b"></span>Free mode — no API key needed';
+  else modeEl.innerHTML = bridgeUp
+    ? '<span class="dot g"></span>Claude API — bridge connected'
+    : '<span class="dot" style="background:#b3261e"></span>Claude API — start the bridge (node server.js) or add a key';
+}
 async function checkMode() {
   try { const r = await (await fetch(BRIDGE + "/log")).json(); bridgeUp = !!r.connected; } catch { bridgeUp = false; }
-  modeEl.innerHTML = bridgeUp ? '<span class="dot g"></span>Full Claude (bridge connected)' : '<span class="dot b"></span>Basic commands — no API needed';
+  updateMode();
 }
 setInterval(checkMode, 3000); checkMode();
+document.getElementById("mFree").onclick = () => { freeMode = true; chrome.storage.local.set({ freeMode: true }); updateMode(); addMsg("sys", "🔵 Free mode — command interpreter (no API)."); };
+document.getElementById("mApi").onclick = () => { freeMode = false; chrome.storage.local.set({ freeMode: false }); updateMode(); addMsg("sys", "🟢 Claude API mode — needs the bridge running with your API key."); };
 
 async function runViaBridge(text) {
   let before = 0; try { before = (await (await fetch(BRIDGE + "/log")).json()).log.length; } catch {}
@@ -126,9 +138,12 @@ document.getElementById("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const text = inp.value.trim(); if (!text) return;
   inp.value = ""; addMsg("me", text);
-  if (bridgeUp) return runViaBridge(text);
+  if (!freeMode) {
+    if (!bridgeUp) return void addMsg("sys", "🟢 Claude API mode is on but the bridge isn’t running. Start it (node server.js with your API key), or switch to 🔵 Free mode.");
+    return runViaBridge(text);
+  }
   const r = await interpret(text);
   addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : "");
 });
 document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
-addMsg("sys", "Type a command. Say “help” for examples.");
+addMsg("sys", "🔵 Free mode (no API key). Type a command — say “help” for examples. Switch to 🟢 Claude API up top once you add a key.");
