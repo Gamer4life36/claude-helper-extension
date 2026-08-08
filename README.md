@@ -32,19 +32,27 @@ Configure everything in **Options** (right-click extension → Options, or the �
 Free mode is a smart command interpreter. It understands many phrasings, but it
 matches **patterns** — it doesn't reason like the API. Examples:
 ```
-NAVIGATE  open pinterest · google.com · new tab · close tab · back · reload · scroll down
+OPEN      open pinterest · google.com · open youtube, reddit, github   (many at once)
 SEARCH    search cute cats
           open youtube and search lofi        search within a specific site
           images of neon city                 Google Images
           videos of cats / play daft punk     YouTube
           buy usb-c hub                        Amazon
-          map of Tokyo · wiki entropy · define quark · translate hola · weather Denver
+          map of Tokyo · directions from LA to Vegas · wiki entropy · define quark
+          translate hola · weather Denver · news about AI · stock AAPL · recipe carbonara
+          what is a qubit?                    natural questions → Google
 PAGE      read                                 list clickable/typeable items with #refs
-          click 7  |  click Sign in            click by number or visible text/label
+          click 7  |  click the Sign in button  click by number or visible text/label
           type me@x.com into email             type into a field (matched by label/name)
-          submit                               submit the page's form
+          submit · press enter · scroll to bottom · back · forward · reload
+          find "returns" on the page           scroll to + highlight text on the page
+SHOP      add to cart · buy now · checkout     acts on the current page (sensitive steps ask first)
 FORMS     fill name=John, email=john@x.com, message: hello
           → reads the page, matches each key to a field by label/name/placeholder, fills it
+PROFILE   set my info name=Mike, email=me@x.com, phone=555-1234
+          fill my info                         one-word autofill on any form (from saved profile)
+EMAIL     email jane@x.com about lunch saying are you free at noon?   opens a Gmail draft (you send)
+EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business
           → generates a templated page (starter design). For a *custom* design, ask Claude directly.
 CHAIN     open youtube then search lofi then scroll down     run steps in sequence
@@ -52,11 +60,13 @@ help                                          show all commands
 ```
 
 ## What it can do (the actions)
-- **Tabs:** open, navigate, list, close, new tab
-- **Nav:** scroll, back, forward, reload
-- **Page:** read (elements + labels + text), click, type, submit, multi-field form fill
+- **Tabs:** open (one or many), navigate, list, close, new tab
+- **Nav:** scroll (incl. to top/bottom), back, forward, reload, find-text-on-page
+- **Page:** read (elements + labels + text), click by text/number, type, submit, multi-field form fill
+- **Profile autofill:** save your contact details once (`set my info …`), then `fill my info` completes any form
+- **Compose:** Gmail drafts, calendar events, tweets — opened prefilled for you to review & send
 - **Build:** generate a templated starter page from a topic (opens as a local `data:` page)
-- **Safety:** sensitive sites prompt per action; adult sites blocked; never auto-enters passwords/payments
+- **Safety:** sensitive sites prompt per action; adult sites blocked; never auto-enters/stores passwords or payment info
 
 > **Where Free mode stops:** it can't invent a novel plan, judge "which is best,"
 > write original page copy/design, or hold a real conversation. Those need 🟢 Claude

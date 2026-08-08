@@ -81,7 +81,20 @@
     const { kind, ref, text, selector } = action;
     if (isForbidden()) return { ok: false, forbidden: true, error: "forbidden by policy: this site is blocked (" + host() + ")" };
     if (kind === "read") return { ok: true, page: readPage() };
-    if (kind === "scroll") { window.scrollBy({ top: (action.amount || 700) * (action.direction === "up" ? -1 : 1), behavior: "smooth" }); return { ok: true, did: "scrolled " + (action.direction || "down") }; }
+    if (kind === "scroll") {
+      if (action.to === "bottom") window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      else if (action.to === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollBy({ top: (action.amount || 700) * (action.direction === "up" ? -1 : 1), behavior: "smooth" });
+      return { ok: true, did: "scrolled " + (action.to || action.direction || "down") };
+    }
+    if (kind === "find_text") {
+      const q = (action.text || "").toLowerCase(); if (!q) return { ok: false, error: "no text given" };
+      const el = [...document.querySelectorAll("body *")].find((e) => e.children.length === 0 && (e.innerText || "").toLowerCase().includes(q));
+      if (!el) return { ok: false, error: `"${action.text}" not found on this page` };
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      const old = el.style.backgroundColor; el.style.backgroundColor = "#ffe066"; setTimeout(() => { el.style.backgroundColor = old; }, 2500);
+      return { ok: true, did: "found", text: (el.innerText || "").trim().slice(0, 120) };
+    }
 
     let el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
     if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form"); // submit: fall back to the page's form

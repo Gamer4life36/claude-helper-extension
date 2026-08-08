@@ -50,25 +50,60 @@ function findEl(q) {
 }
 function findField(k) {
   const s = k.toLowerCase();
-  const inputs = lastEls.filter((x) => ["input", "textarea", "select"].includes(x.tag) && !["submit", "button", "checkbox", "radio"].includes(x.type));
+  const inputs = lastEls.filter((x) => ["input", "textarea", "select"].includes(x.tag) && !["submit", "button", "checkbox", "radio", "password"].includes(x.type) && !x.isPassword);
   const best = inputs.map((x) => ({ x, sc: scoreEl(x, s, ["label", "name", "placeholder"]) })).filter((o) => o.sc > 0).sort((a, b) => b.sc - a.sc)[0];
   return best ? { ref: best.x.ref } : null;
 }
 
+// ── saved profile (for one-word autofill) ──────────────────────────────────
+const FIELD_SYNS = {
+  name: ["name", "full name", "your name", "fullname"], first: ["first name", "first", "given name", "fname", "firstname"],
+  last: ["last name", "last", "surname", "family name", "lname", "lastname"], email: ["email", "e-mail", "email address"],
+  phone: ["phone", "mobile", "telephone", "phone number", "tel", "cell"], address: ["address", "street", "address line 1", "street address"],
+  address2: ["address line 2", "apt", "apartment", "suite", "unit"], city: ["city", "town"],
+  state: ["state", "province", "region"], zip: ["zip", "postal", "postcode", "zip code", "postal code"],
+  country: ["country"], company: ["company", "organization", "organisation", "business"], message: ["message", "comment", "comments", "your message", "note"]
+};
+function normKey(k) { k = k.toLowerCase().trim(); for (const [c, syns] of Object.entries(FIELD_SYNS)) { if (c === k || syns.includes(k)) return c; } return k; }
+function parsePairs(str) {
+  return str.split(/[,;]|\band\b/i).map((s) => s.trim()).filter(Boolean)
+    .map((s) => { const mm = s.match(/^(.+?)\s*[:=]\s*(.+)$/); return mm ? { k: mm[1].trim(), v: mm[2].trim() } : null; }).filter(Boolean);
+}
+async function autofillProfile(prof) {
+  await ensureRead(); const done = []; const used = new Set();
+  for (const [key, value] of Object.entries(prof)) {
+    const syns = FIELD_SYNS[key] || [key]; let filled = false;
+    for (const syn of syns) { const tgt = findField(syn); if (tgt && !used.has(tgt.ref)) { const r = await exec("type", { ...tgt, text: value }); if (r.ok) { used.add(tgt.ref); done.push(`• ${key} → filled`); filled = true; break; } } }
+    if (!filled) done.push(`• ${key}: no field`);
+  }
+  return done;
+}
+const clickByText = async (label) => { await ensureRead(); const tgt = findEl(label); if (!tgt) return { ok: false, error: `no “${label}” control found — try "read" first` }; return exec("click", tgt); };
+
 // intent → URL
+const enc = encodeURIComponent;
 function intentUrl(t) {
   let m;
-  if ((m = t.match(/^(?:images?|pictures?|pics?)\s+of\s+(.+)/i))) return "https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(m[1]);
-  if ((m = t.match(/^(?:videos?|watch|play)\s+(?:of\s+)?(.+)/i))) return SEARCH_URLS.youtube + encodeURIComponent(m[1]);
-  if ((m = t.match(/^(?:maps?|directions?(?:\s+to)?|where is)\s+(.+)/i))) return "https://www.google.com/maps/search/" + encodeURIComponent(m[1]);
-  if ((m = t.match(/^(?:wiki|wikipedia)\s+(.+)/i))) return SEARCH_URLS.wikipedia + encodeURIComponent(m[1]);
-  if ((m = t.match(/^(?:define|definition of|meaning of)\s+(.+)/i))) return "https://www.google.com/search?q=" + encodeURIComponent("define " + m[1]);
-  if ((m = t.match(/^translate\s+(.+)/i))) return "https://translate.google.com/?sl=auto&tl=en&text=" + encodeURIComponent(m[1]);
-  if ((m = t.match(/^weather(?:\s+(?:in|for))?\s+(.+)/i))) return "https://www.google.com/search?q=" + encodeURIComponent("weather " + m[1]);
-  if ((m = t.match(/^(?:buy|shop(?:\s+for)?|order)\s+(.+)/i))) return SEARCH_URLS.amazon + encodeURIComponent(m[1]);
-  if ((m = t.match(/^news(?:\s+(?:about|on))?\s+(.+)/i))) return "https://news.google.com/search?q=" + encodeURIComponent(m[1]);
+  if ((m = t.match(/^(?:images?|pictures?|pics?)\s+of\s+(.+)/i))) return "https://www.google.com/search?tbm=isch&q=" + enc(m[1]);
+  if ((m = t.match(/^(?:videos?|watch|play)\s+(?:of\s+)?(.+)/i))) return SEARCH_URLS.youtube + enc(m[1]);
+  if ((m = t.match(/^directions?\s+from\s+(.+?)\s+to\s+(.+)$/i))) return "https://www.google.com/maps/dir/" + enc(m[1]) + "/" + enc(m[2]);
+  if ((m = t.match(/^(?:maps?|directions?(?:\s+to)?|navigate to|where is)\s+(.+)/i))) return "https://www.google.com/maps/search/" + enc(m[1]);
+  if ((m = t.match(/^(?:wiki|wikipedia)\s+(.+)/i))) return SEARCH_URLS.wikipedia + enc(m[1]);
+  if ((m = t.match(/^(?:define|definition of|meaning of)\s+(.+)/i))) return "https://www.google.com/search?q=" + enc("define " + m[1]);
+  if ((m = t.match(/^translate\s+(.+)/i))) return "https://translate.google.com/?sl=auto&tl=en&text=" + enc(m[1]);
+  if ((m = t.match(/^weather(?:\s+(?:in|for))?\s+(.+)/i))) return "https://www.google.com/search?q=" + enc("weather " + m[1]);
+  if ((m = t.match(/^(?:buy|shop(?:\s+for)?|order|purchase)\s+(.+)/i))) return SEARCH_URLS.amazon + enc(m[1]);
+  if ((m = t.match(/^news(?:\s+(?:about|on))?\s+(.+)/i))) return "https://news.google.com/search?q=" + enc(m[1]);
+  if ((m = t.match(/^(?:tweet|post to (?:twitter|x))\s+(.+)/i))) return "https://twitter.com/intent/tweet?text=" + enc(m[1]);
+  if ((m = t.match(/^(?:add (?:a )?(?:calendar )?event|schedule|new event|remind me to)\s+(.+)/i))) return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + enc(m[1]);
+  if ((m = t.match(/^(?:search (?:my )?(?:e-?mail|gmail|inbox)|find (?:e-?mails?|mail))\s+(?:for\s+|from\s+)?(.+)/i))) return "https://mail.google.com/mail/u/0/#search/" + enc(m[1]);
+  if ((m = t.match(/^(?:stock|ticker|share price)\s+(?:of\s+|for\s+)?(.+)/i))) return "https://www.google.com/search?q=" + enc(m[1] + " stock");
+  if ((m = t.match(/^flights?\s+(?:from\s+)?(.+?)\s+to\s+(.+)$/i))) return "https://www.google.com/travel/flights?q=" + enc("flights from " + m[1] + " to " + m[2]);
+  if ((m = t.match(/^(?:showtimes?|movie times?)\s+(?:for\s+)?(.+)/i))) return "https://www.google.com/search?q=" + enc(m[1] + " showtimes");
+  if ((m = t.match(/^recipe(?:s)?\s+(?:for\s+)?(.+)/i))) return "https://www.google.com/search?q=" + enc(m[1] + " recipe");
   return null;
 }
+function composeEmailUrl(to, sub, body) { return `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to || "")}&su=${enc(sub || "")}&body=${enc(body || "")}`; }
 
 function buildPage(topic) {
   const T = topic.replace(/[<>]/g, "").slice(0, 60);
@@ -88,11 +123,18 @@ function buildPage(topic) {
   return "data:text/html;charset=utf-8," + encodeURIComponent(html);
 }
 
-const HELP = `I control your browser (Free mode — pattern-based, no API). Try:
-NAVIGATE  open pinterest · google.com · reddit
-SEARCH    search cute cats · open youtube and search lofi · images of neon city · videos of cats · buy usb-c hub · map of Tokyo · wiki quantum · define entropy · weather Denver
-PAGE      read · click 7 · click Sign in · type me@x.com into email · submit · scroll down · back · reload · list tabs
+const HELP = `Free mode — a smart pattern-based controller (no API). Try:
+OPEN      open pinterest · google.com · open youtube, reddit, github (many at once)
+SEARCH    search cute cats · open youtube and search lofi · images of neon city · videos of cats
+          buy usb-c hub · map of Tokyo · directions from LA to Vegas · wiki quantum · define entropy
+          weather Denver · translate hola · news about AI · stock AAPL · recipe carbonara · what is a qubit?
+PAGE      read · click 7 · click the Sign in button · type me@x.com into email · submit · press enter
+          scroll down · scroll to bottom · back · forward · reload · find "returns" on the page · list tabs
+SHOP      add to cart · buy now · checkout   (acts on the current page; sensitive steps ask first)
 FORMS     fill name=John, email=john@x.com, message: hello
+PROFILE   set my info name=Mike, email=me@x.com, phone=555-1234   →  then just say:  fill my info
+EMAIL     email jane@x.com about lunch saying are you free at noon?   (opens a Gmail draft — you send)
+EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business   (a template — for real design, ask Claude directly)
 CHAIN     open youtube then search lofi then scroll down
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
@@ -110,6 +152,44 @@ async function interpret(text) {
   if (/^close( this)?( tab)?$/.test(l)) { const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); await exec("close_tab", { tabId: tab.id }); return { text: "Closed tab." }; }
   if (/^(new tab|open( a)? new tab)$/.test(l)) { await exec("open_tab", { url: "about:blank" }); return { text: "New tab." }; }
   if (/^(list )?tabs$/.test(l)) { const r = await exec("list_tabs", {}); return { text: r.ok ? r.tabs.map((x) => `• ${x.title || x.url}`).join("\n") : "🚫 " + r.error, els: true }; }
+  if (/^(scroll to |go to )?(the )?bottom$|^scroll bottom$/.test(l)) { await exec("scroll", { to: "bottom" }); return { text: "Scrolled to bottom." }; }
+  if (/^(scroll to |go to )?(the )?top$|^scroll top$/.test(l)) { await exec("scroll", { to: "top" }); return { text: "Scrolled to top." }; }
+  if (/^(press|hit)\s+enter$/.test(l)) { const r = await exec("submit", {}); return { text: r.ok ? "Submitted." : "🚫 " + r.error, blocked: !r.ok }; }
+
+  // find text on the current page
+  if ((m = t.match(/^(?:find|locate|highlight|jump to)\s+(.+?)\s+on\s+(?:this|the)\s+page$/i)) || (m = t.match(/^find on page\s+(.+)/i)) || (m = t.match(/^(?:find|highlight)\s+"([^"]+)"$/i))) {
+    const r = await exec("find_text", { text: m[1].replace(/^["'“]|["'”]$/g, "").trim() }); return { text: r.ok ? `Found: “${r.text}”` : "🚫 " + r.error, blocked: !r.ok };
+  }
+
+  // common page buttons (shopping / auth) — clicked on the CURRENT page
+  if (/^(add to cart|add to bag|add to basket|add this to (?:my )?cart)$/i.test(l)) { const r = await clickByText("add to cart"); return { text: r.ok ? "Clicked Add to cart." : "🚫 " + r.error, blocked: !r.ok }; }
+  if (/^(buy now|buy it now)$/i.test(l)) { const r = await clickByText("buy now"); return { text: r.ok ? "Clicked Buy now (confirm if prompted)." : "🚫 " + r.error, blocked: !r.ok }; }
+  if (/^(checkout|check out|proceed to checkout|place order)$/i.test(l)) { const r = await clickByText("checkout"); return { text: r.ok ? "Clicked Checkout (confirm if prompted)." : "🚫 " + r.error, blocked: !r.ok }; }
+  if (/^(sign in|log ?in)$/i.test(l)) { const r = await clickByText("sign in"); return { text: r.ok ? "Clicked Sign in." : "🚫 " + r.error, blocked: !r.ok }; }
+
+  // email compose → opens a Gmail draft (you review & send)
+  if ((m = t.match(/^(?:email|e-?mail|write (?:an? )?email to|send (?:an? )?email to|compose (?:to|an email to))\s+(\S+@\S+|[\w .'-]+?)(?:\s+(?:about|re:?|subject:?|saying|that says|with subject)\s+(.+))?$/i))) {
+    const to = m[1].trim(); let sub = (m[2] || "").trim(), body = "";
+    const bm = sub.match(/^(.+?)\s+(?:saying|body:?|message:?)\s+(.+)$/i); if (bm) { sub = bm[1].trim(); body = bm[2].trim(); }
+    const r = await exec("open_tab", { url: composeEmailUrl(to, sub, body) });
+    return { text: r.ok ? `Opened a Gmail draft to ${to}${sub ? ` — “${sub}”` : ""}. Review and send it yourself.` : "🚫 " + r.error, blocked: !r.ok };
+  }
+
+  // save profile → "set my info name=Mike, email=..., phone=..."
+  if ((m = t.match(/^(?:set|save|remember|update)\s+my\s+(?:info|profile|details|contact(?:\s+info)?)?\s*(?:to|:|=|with|as)?\s*(.+)$/i)) && /[:=]/.test(m[1])) {
+    const pairs = parsePairs(m[1]); if (!pairs.length) return { text: 'Say e.g. "set my info name=Mike, email=me@x.com, phone=555-1234".' };
+    const prof = (await chrome.storage.local.get("profile")).profile || {};
+    for (const { k, v } of pairs) prof[normKey(k)] = v;
+    await chrome.storage.local.set({ profile: prof });
+    return { text: "Saved your profile: " + Object.keys(prof).join(", ") + '.\nNow say “fill my info” on any form. (Passwords & cards are never stored.)' };
+  }
+  // autofill from saved profile
+  if (/^(?:fill|autofill|complete)\s+(?:this\s+)?(?:form\s+)?(?:with\s+)?my\s+(?:info|profile|details|contact(?:\s+info)?)$|^autofill$/i.test(l)) {
+    const prof = (await chrome.storage.local.get("profile")).profile || {};
+    if (!Object.keys(prof).length) return { text: 'No saved profile yet. First: "set my info name=Mike, email=me@x.com, phone=...".' };
+    const done = await autofillProfile(prof);
+    return { text: "Autofilled from your profile:\n" + done.join("\n"), els: true };
+  }
 
   // build a template page
   if ((m = t.match(/^(?:build|make|create|generate)\s+(?:me\s+)?(?:a|an)?\s*[\w ]*?(?:page|site|website|landing[\w ]*)\s+(?:for|about)\s+(.+)/i))) {
@@ -125,6 +205,8 @@ async function interpret(text) {
   // intent shortcuts
   const iu = intentUrl(t); if (iu) { const r = await exec("open_tab", { url: iu }); return { text: r.ok ? "Opened." : "🚫 " + r.error, blocked: !r.ok }; }
 
+  // open several at once: "open youtube, reddit, github"
+  if ((m = l.match(/^open\s+(.+,.+)$/))) { const sites = m[1].split(/\s*,\s*/).map((s) => s.trim()).filter(Boolean); for (const s of sites) await exec("open_tab", { url: resolve(s) }); return { text: "Opened " + sites.length + " tabs: " + sites.join(", ") }; }
   // open / go
   if ((m = l.match(/^(?:open|go to|goto|visit|launch)\s+(.+)/))) { const url = resolve(m[1]); const r = await exec("open_tab", { url }); return { text: r.ok ? "Opened " + url : "🚫 " + r.error, blocked: !r.ok }; }
   // generic search
@@ -139,8 +221,8 @@ async function interpret(text) {
   }
 
   // form fill
-  if ((m = t.match(/^fill\s+(?:(?:in|out)\s+)?(?:the\s+)?(?:form\s+)?(?:with\s+)?(.+)$/i))) {
-    const pairs = m[1].split(/[,;]|\band\b/i).map((s) => s.trim()).filter(Boolean).map((s) => { const mm = s.match(/^(.+?)\s*[:=]\s*(.+)$/); return mm ? { k: mm[1].trim(), v: mm[2].trim() } : null; }).filter(Boolean);
+  if ((m = t.match(/^fill\s+(?:(?:in|out)\s+)?(?:the\s+)?(?:form\s+)?(?:with\s+)?(.+)$/i)) && /[:=]/.test(m[1])) {
+    const pairs = parsePairs(m[1]);
     if (!pairs.length) return { text: `Say e.g. "fill name=John, email=john@x.com, message: hello".` };
     await ensureRead();
     const done = [];
@@ -150,10 +232,13 @@ async function interpret(text) {
 
   // type X into Y
   if ((m = t.match(/^type\s+(.+?)\s+(?:into|in)\s+(.+)$/i))) { await ensureRead(); const tgt = findEl(m[2]); if (!tgt) return { text: `Read the page first, then e.g. "type ${m[1]} into email".` }; const r = await exec("type", { ...tgt, text: m[1] }); return { text: r.ok ? `Typed into ${m[2]}` : "🚫 " + r.error, blocked: !r.ok }; }
-  // click
-  if ((m = l.match(/^click\s+(.+)/))) { await ensureRead(); const tgt = findEl(m[1]); if (!tgt) return { text: `Couldn't find "${m[1]}". Say "read" first, then click by number or visible text.` }; const r = await exec("click", tgt); return { text: r.ok ? `Clicked ${m[1]}` : "🚫 " + r.error, blocked: !r.ok }; }
+  // click (strips "the"/"button"/"link", allows "click on")
+  if ((m = l.match(/^click(?:\s+on)?\s+(.+)/))) { await ensureRead(); const q = m[1].replace(/^the\s+/, "").replace(/\s+(button|link|tab|icon|option)$/, "").trim(); const tgt = findEl(q); if (!tgt) return { text: `Couldn't find "${q}". Say "read" first, then click by number or visible text.` }; const r = await exec("click", tgt); return { text: r.ok ? `Clicked ${q}` : "🚫 " + r.error, blocked: !r.ok }; }
   // submit
   if (/^submit\b/.test(l)) { const r = await exec("submit", {}); return { text: r.ok ? "Submitted." : "🚫 " + r.error, blocked: !r.ok }; }
+
+  // natural questions → Google
+  if (/\?$/.test(t) || /^(what|who|when|where|why|how|is|are|can|does|do|should|which|will|whats|what's)\b/.test(l)) { const r = await exec("open_tab", { url: "https://www.google.com/search?q=" + enc(t) }); return { text: r.ok ? "Searched Google: " + t : "🚫 " + r.error, blocked: !r.ok }; }
 
   // fallback → site or search
   const url = resolve(t); const r = await exec("open_tab", { url }); return { text: r.ok ? "Opened " + url : "🚫 " + r.error, blocked: !r.ok };

@@ -19,7 +19,7 @@ const ADULT_KEYWORDS = [
 ];
 
 const DEFAULT_POLICY = {
-  capabilities: { open_tab: true, navigate: true, close_tab: true, list_tabs: true, read_page: true, click: true, type: true, submit: true, scroll: true, reload: true, back: true, forward: true },
+  capabilities: { open_tab: true, navigate: true, close_tab: true, list_tabs: true, read_page: true, click: true, type: true, submit: true, scroll: true, reload: true, back: true, forward: true, find_text: true },
   forbiddenDomains: [...ADULT_DOMAINS],
   forbiddenKeywords: [...ADULT_KEYWORDS],
   confirmSites: [
@@ -91,13 +91,13 @@ async function execTool(tool, args = {}) {
     case "reload": { const id = args.tabId ?? (await activeTabId()); await chrome.tabs.reload(id); return { ok: true }; }
     case "back": { const id = args.tabId ?? (await activeTabId()); try { await chrome.tabs.goBack(id); } catch { return { ok: false, error: "can't go back" }; } return { ok: true }; }
     case "forward": { const id = args.tabId ?? (await activeTabId()); try { await chrome.tabs.goForward(id); } catch { return { ok: false, error: "can't go forward" }; } return { ok: true }; }
-    case "read_page": case "click": case "type": case "submit": case "scroll": {
+    case "read_page": case "click": case "type": case "submit": case "scroll": case "find_text": {
       let tabId, tab;
       try { tabId = args.tabId ?? (await activeTabId()); } catch { return { ok: false, error: "no active tab — open a normal web page first" }; }
       try { tab = await chrome.tabs.get(tabId); } catch { return { ok: false, error: "couldn't access the active tab (open a normal http/https page)" }; }
       const why = forbiddenReason(hostOf(tab.url), policy);
       if (why) return { ok: false, forbidden: true, error: "blocked: " + why };
-      const action = { kind: tool === "read_page" ? "read" : tool, ref: args.ref, selector: args.selector, text: args.text, direction: args.direction, amount: args.amount };
+      const action = { kind: tool === "read_page" ? "read" : tool, ref: args.ref, selector: args.selector, text: args.text, direction: args.direction, amount: args.amount, to: args.to };
       return await sendToTab(tabId, { type: "PAGE_ACTION", action, policy });
     }
     default: return { ok: false, error: "unknown tool: " + tool };
