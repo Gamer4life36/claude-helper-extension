@@ -13,6 +13,14 @@
     return els;
   }
   const elByRef = (ref) => document.querySelector(`[data-claude-ref="${CSS.escape(String(ref))}"]`);
+  function getLabel(el) {
+    try {
+      if (el.id) { const l = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (l && l.innerText.trim()) return l.innerText.trim().slice(0, 60); }
+      const p = el.closest("label"); if (p && p.innerText.trim()) return p.innerText.trim().slice(0, 60);
+      const a = el.getAttribute("aria-label"); if (a) return a.slice(0, 60);
+      return "";
+    } catch { return ""; }
+  }
   const host = () => location.hostname.replace(/^www\./, "").toLowerCase();
   const suffixMatch = (list) => (list || []).some((d) => host() === d || host().endsWith("." + d));
   const keywordMatch = (list) => (list || []).some((k) => host().includes(k));
@@ -24,7 +32,7 @@
       hasPasswordField: !!document.querySelector("input[type=password]"),
       elements: els.slice(0, 400).map((el) => ({
         ref: el.getAttribute("data-claude-ref"), tag: el.tagName.toLowerCase(), type: el.getAttribute("type") || "",
-        name: el.getAttribute("name") || "", placeholder: el.getAttribute("placeholder") || "",
+        name: el.getAttribute("name") || "", placeholder: el.getAttribute("placeholder") || "", label: getLabel(el),
         text: (el.innerText || el.value || el.getAttribute("aria-label") || "").trim().slice(0, 80),
         href: el.getAttribute("href") || "", isPassword: (el.getAttribute("type") || "").toLowerCase() === "password"
       })),
@@ -73,6 +81,7 @@
     const { kind, ref, text, selector } = action;
     if (isForbidden()) return { ok: false, forbidden: true, error: "forbidden by policy: this site is blocked (" + host() + ")" };
     if (kind === "read") return { ok: true, page: readPage() };
+    if (kind === "scroll") { window.scrollBy({ top: (action.amount || 700) * (action.direction === "up" ? -1 : 1), behavior: "smooth" }); return { ok: true, did: "scrolled " + (action.direction || "down") }; }
 
     let el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
     if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form"); // submit: fall back to the page's form

@@ -8,8 +8,10 @@ extensions) and is bounded entirely by a **user-defined policy**.
 ## Two modes
 | Mode | Brain? | Needs |
 |------|--------|-------|
-| 🔵 **Basic commands** | ❌ no — a fixed command interpreter | nothing (free) |
-| 🟢 **Full Claude** | ✅ yes — real reasoning & conversation | your own Anthropic **API key** (paid) via the bridge |
+| 🔵 **Free mode** | ❌ no — a smart pattern-based command interpreter | nothing (free) |
+| 🟢 **Claude API** | ✅ yes — real reasoning & conversation | your own Anthropic **API key** (paid) via the bridge |
+
+A toggle at the top of the panel switches between them. It **defaults to Free** and stays there until you pick Claude API — a running bridge can't hijack it.
 
 > **Honest note:** without the API key, this is a **command-runner + smart search
 > bar**, not an intelligent assistant. It executes exact commands (`open pinterest`,
@@ -26,22 +28,39 @@ extensions) and is bounded entirely by a **user-defined policy**.
 
 Configure everything in **Options** (right-click extension → Options, or the ⚙ Policy link in the panel).
 
-## Commands (Basic mode)
+## Commands (Free mode — pattern-based, no API)
+Free mode is a smart command interpreter. It understands many phrasings, but it
+matches **patterns** — it doesn't reason like the API. Examples:
 ```
-open pinterest            open a site by name / URL
-search cute cats          Google search
-read                      list the page's clickable/typeable items with #refs
-click 7   |  click Sign in  click by number or visible text
-type hello@x.com into 3   type into a field
-submit                    submit the page's form
-list tabs                 list open tabs
-help                      show commands
+NAVIGATE  open pinterest · google.com · new tab · close tab · back · reload · scroll down
+SEARCH    search cute cats
+          open youtube and search lofi        search within a specific site
+          images of neon city                 Google Images
+          videos of cats / play daft punk     YouTube
+          buy usb-c hub                        Amazon
+          map of Tokyo · wiki entropy · define quark · translate hola · weather Denver
+PAGE      read                                 list clickable/typeable items with #refs
+          click 7  |  click Sign in            click by number or visible text/label
+          type me@x.com into email             type into a field (matched by label/name)
+          submit                               submit the page's form
+FORMS     fill name=John, email=john@x.com, message: hello
+          → reads the page, matches each key to a field by label/name/placeholder, fills it
+BUILD     build a landing page for my PC-building business
+          → generates a templated page (starter design). For a *custom* design, ask Claude directly.
+CHAIN     open youtube then search lofi then scroll down     run steps in sequence
+help                                          show all commands
 ```
 
 ## What it can do (the actions)
-- **Tabs:** open, navigate, list, close
-- **Page:** read (elements + text), click, type, submit
+- **Tabs:** open, navigate, list, close, new tab
+- **Nav:** scroll, back, forward, reload
+- **Page:** read (elements + labels + text), click, type, submit, multi-field form fill
+- **Build:** generate a templated starter page from a topic (opens as a local `data:` page)
 - **Safety:** sensitive sites prompt per action; adult sites blocked; never auto-enters passwords/payments
+
+> **Where Free mode stops:** it can't invent a novel plan, judge "which is best,"
+> write original page copy/design, or hold a real conversation. Those need 🟢 Claude
+> API mode (below) — or just ask Claude directly for design/writing.
 
 ## Install (unpacked)
 1. `chrome://extensions` → enable **Developer mode**
