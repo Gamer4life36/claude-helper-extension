@@ -89,8 +89,9 @@ async function execTool(tool, args = {}) {
     case "close_tab": await chrome.tabs.remove(args.tabId); return { ok: true };
     case "list_tabs": { const tabs = await chrome.tabs.query({}); return { ok: true, tabs: tabs.map(t => ({ id: t.id, url: t.url, title: t.title, active: t.active })) }; }
     case "read_page": case "click": case "type": case "submit": {
-      const tabId = args.tabId ?? (await activeTabId());
-      const tab = await chrome.tabs.get(tabId);
+      let tabId, tab;
+      try { tabId = args.tabId ?? (await activeTabId()); } catch { return { ok: false, error: "no active tab — open a normal web page first" }; }
+      try { tab = await chrome.tabs.get(tabId); } catch { return { ok: false, error: "couldn't access the active tab (open a normal http/https page)" }; }
       const why = forbiddenReason(hostOf(tab.url), policy);
       if (why) return { ok: false, forbidden: true, error: "blocked: " + why };
       const action = { kind: tool === "read_page" ? "read" : tool, ref: args.ref, selector: args.selector, text: args.text };

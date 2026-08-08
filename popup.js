@@ -77,9 +77,11 @@ document.addEventListener("click", (e) => { if (!$("searchWrap").contains(e.targ
 // ── existing controls ──────────────────────────────────────────────────────
 async function refreshStatus() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const { policy } = await send({ type: "GET_POLICY" });
+  if (!tab) return;
+  const resp = await send({ type: "GET_POLICY" });
+  const policy = (resp && resp.policy) || {};
   const host = (() => { try { return new URL(tab.url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
-  const sensitive = (policy.confirmSites || []).some((s) => host === s.host || host.endsWith("." + s.host)) || /login|bank|pay|checkout|account|auth|billing/i.test(tab.url || "");
+  const sensitive = (policy.confirmSites || []).some((s) => s && s.host && (host === s.host || host.endsWith("." + s.host))) || /login|bank|pay|checkout|account|auth|billing/i.test(tab.url || "");
   const forbidden = (policy.forbiddenDomains || []).some((d) => host === d || host.endsWith("." + d)) || (policy.forbiddenKeywords || []).some((k) => host.includes(k));
   statusEl.innerHTML = `Active: <b>${host || tab.url}</b> — ` +
     (forbidden ? `<span class="warn">forbidden → blocked</span>` : sensitive ? `<span class="warn">sensitive → confirm</span>` : `<span class="safe">normal</span>`);
