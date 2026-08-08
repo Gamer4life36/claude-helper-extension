@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Claude Browser Bridge</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; max-width: 820px; margin: 24px auto; padding: 0 16px; background:#0f1218; color:#e6e6e6; }
+    h1 { font-size: 18px; }
+    #status { font-size: 13px; margin: 6px 0 14px; }
+    .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; }
+    .on { background:#48c774; } .off { background:#b3261e; }
+    textarea { width: 100%; height: 70px; font-size: 14px; padding: 10px; border-radius: 8px; border:1px solid #333; background:#161b22; color:#e6e6e6; box-sizing:border-box; }
+    button { padding: 9px 16px; font-size: 14px; border-radius: 8px; border:0; background:#3b82f6; color:#fff; cursor:pointer; margin-top:8px; }
+    button:disabled { background:#444; }
+    pre { background:#0b0e13; border:1px solid #222; padding:12px; border-radius:8px; height:360px; overflow:auto; font-size:12px; white-space:pre-wrap; }
+    .hint { color:#8a93a3; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>🌐 Claude Browser Bridge</h1>
+  <div id="status"><span class="dot off"></span> connecting…</div>
+
+  <textarea id="task" placeholder="Describe a task, e.g. 'Open example.com, read the page, and tell me the main heading.'"></textarea><br/>
+  <button id="run">Run task</button>
+  <span class="hint">Sensitive sites will ask you to approve each action in the browser.</span>
+
+  <h3>Log</h3>
+  <pre id="log">—</pre>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    async function poll() {
+      try {
+        const r = await (await fetch("/log")).json();
+        $("status").innerHTML = `<span class="dot ${r.connected ? "on" : "off"}"></span> extension ${r.connected ? "connected" : "NOT connected — load/reload it in chrome://extensions"} ${r.running ? "· running…" : ""}`;
+        $("run").disabled = r.running || !r.connected;
+        $("log").textContent = r.log.join("\n") || "—";
+        $("log").scrollTop = $("log").scrollHeight;
+      } catch { $("status").innerHTML = `<span class="dot off"></span> server not reachable`; }
+    }
+    $("run").onclick = async () => {
+      const task = $("task").value.trim(); if (!task) return;
+      await fetch("/task", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task }) });
+    };
+    setInterval(poll, 1000); poll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Helper (Dev)",
+  "version": "0.2.0",
+  "description": "Configurable browser-control helper. You define what it can do (capabilities) and what is strictly forbidden. Sensitive sites ask per action.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting",
+    "storage",
+    "unlimitedStorage",
+    "cookies",
+    "contextMenus",
+    "notifications",
+    "downloads",
+    "clipboardRead",
+    "clipboardWrite",
+    "webNavigation",
+    "history",
+    "bookmarks",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Claude Helper",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
