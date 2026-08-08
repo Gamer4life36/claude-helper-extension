@@ -1,4 +1,4 @@
-# Testing Claude Helper — Start Here
+# Testing Claude Companion — Start Here
 
 Thanks for testing! This is a personal Chrome extension that puts a **chat panel on the
 right side of your browser**. You type plain commands ("open youtube and search lofi",
@@ -31,7 +31,7 @@ git clone https://github.com/Gamer4life36/claude-helper-extension.git
 2. Turn on **Developer mode** (top-right toggle)
 3. Click **Load unpacked**
 4. Select the **folder** (the one containing `manifest.json`)
-5. You'll see **“Claude Helper (Dev)”** appear. Pin it if you like.
+5. You'll see **“Claude Companion (Dev)”** appear. Pin it if you like.
 
 ---
 

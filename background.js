@@ -1,4 +1,4 @@
-// ── Claude Helper — background service worker + policy engine + bridge ──────
+// ── Claude Companion — background service worker + policy engine + bridge ──────
 // Policy tiers per action:
 //   capabilities      — allow-list of tools
 //   forbiddenDomains  — hard block by host (no action ever)

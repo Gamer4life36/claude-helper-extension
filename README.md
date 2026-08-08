@@ -1,4 +1,4 @@
-# Claude Helper — Configurable Browser Assistant
+# Claude Companion — Configurable Browser Assistant
 
 > ⚖️ **Unofficial.** Not affiliated with, endorsed by, or sponsored by Anthropic. "Claude" is a
 > trademark of Anthropic, PBC. This is an independent browser tool; it optionally connects to
@@ -57,7 +57,7 @@ you type an instruction, it matches a pattern and drives the browser.
 
 Different tools for different jobs — be clear-eyed about which you need.
 
-| | **Claude Helper — Free mode** | **Official Claude for Chrome / 🟢 API mode** |
+| | **Claude Companion — Free mode** | **Official Claude for Chrome / 🟢 API mode** |
 |---|---|---|
 | Brain | Pattern-matching (deterministic) | Real Claude reasoning |
 | Cost | **Free** | Subscription / pay-per-use API |

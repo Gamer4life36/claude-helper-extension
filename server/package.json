@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
-  "description": "Local bridge: runs the Claude agent loop and drives the Claude Helper Chrome extension.",
+  "description": "Local bridge: runs the Claude agent loop and drives the Claude Companion Chrome extension.",
   "scripts": {
     "start": "node server.js"
   },

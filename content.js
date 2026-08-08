@@ -1,4 +1,4 @@
-// ── Claude Helper — content script (policy-enforced) ───────────────────────
+// ── Claude Companion — content script (policy-enforced) ───────────────────────
 // forbidden host/keyword → HARD BLOCK
 // sensitive site with mode "ask" → Approve/Deny modal
 // sensitive site with mode "allow" → runs directly (you chose "always allow")
@@ -144,7 +144,7 @@
     if (s.mode === "ask") {
       const label = (el.innerText || el.value || el.getAttribute("name") || el.getAttribute("placeholder") || el.tagName).toString().slice(0, 60);
       const detail = `Action: ${kind}\nTarget: <${el.tagName.toLowerCase()}> ${label}\nURL: ${location.href}` + (kind === "type" ? `\nText: ${isPw ? "«password — hidden»" : text}` : "");
-      const ok = await confirmModal(`Claude Helper wants to <b>${kind}</b> on this sensitive page.`, detail);
+      const ok = await confirmModal(`Claude Companion wants to <b>${kind}</b> on this sensitive page.`, detail);
       if (!ok) return { ok: false, denied: true, error: "Denied by user." };
     }
     // s.mode === "allow" or null → proceed
@@ -164,5 +164,5 @@
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg?.type === "PAGE_ACTION") { policy = msg.policy || {}; perform(msg.action).then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e?.message || e) })); return true; }
   });
-  console.log("[Claude Helper] policy content script active on", location.href);
+  console.log("[Claude Companion] policy content script active on", location.href);
 })();

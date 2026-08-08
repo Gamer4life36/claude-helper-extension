@@ -1,4 +1,4 @@
-CLAUDE HELPER — Browser Control (personal / unpacked dev extension)
+Claude Companion — Browser Control (personal / unpacked dev extension)
 ==================================================================
 
 WHAT IT DOES
@@ -20,13 +20,13 @@ SAFETY MODEL (the important part)
 
 CUSTOMIZE THE SENSITIVE LIST
 - Add your banks/bill sites: open the service worker console (chrome://extensions
-  > Claude Helper > "service worker") and run:
+  > Claude Companion > "service worker") and run:
     chrome.storage.local.set({ sensitiveHosts: ["yourbank.com","yourutility.com", ...] })
 
 HOW TO LOAD / RELOAD
 1. chrome://extensions  →  Developer mode ON
 2. First time: "Load unpacked" → select this folder.
-   After edits: click the refresh/reload icon on the Claude Helper card,
+   After edits: click the refresh/reload icon on the Claude Companion card,
    then RELOAD any open web tab so the new content script runs.
 3. Pin it, click the icon → use the popup console.
 
