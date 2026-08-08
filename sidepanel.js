@@ -105,6 +105,31 @@ function intentUrl(t) {
 }
 function composeEmailUrl(to, sub, body) { return `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to || "")}&su=${enc(sub || "")}&body=${enc(body || "")}`; }
 
+// extractive summary — score sentences by keyword frequency + lead bias (no AI)
+function summarize(text, n = 6) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  const sentences = (clean.match(/[^.!?]+[.!?]+(?=\s|$)/g) || [clean]).filter((s) => s.trim().split(/\s+/).length >= 5);
+  if (sentences.length <= n) return sentences.map((s) => s.trim());
+  const stop = new Set("the a an and or but of to in on at for with is are was were be been by this that it as from your you we our their his her its not can will would should more most than then them they he she into out over about after before also just".split(" "));
+  const freq = {}; for (const w of clean.toLowerCase().match(/[a-z']{3,}/g) || []) if (!stop.has(w)) freq[w] = (freq[w] || 0) + 1;
+  const scored = sentences.map((s, i) => { const words = s.toLowerCase().match(/[a-z']{3,}/g) || []; let sc = words.reduce((a, w) => a + (freq[w] || 0), 0) / (words.length || 1); if (i < 3) sc *= 1.15; return { s: s.trim(), sc, i }; });
+  return scored.sort((a, b) => b.sc - a.sc).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.s);
+}
+function readerPage(title, text) {
+  const esc = (s) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+  const paras = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
+  const html = `<!doctype html><meta charset=utf-8><title>${esc(title)}</title><style>body{max-width:720px;margin:40px auto;padding:0 20px;font:18px/1.7 Georgia,serif;background:#faf9f6;color:#222}h1{font:700 30px/1.3 Segoe UI,Arial,sans-serif;margin-bottom:.6em}p{margin:0 0 1em}@media(prefers-color-scheme:dark){body{background:#16181d;color:#dcdcdc}}</style><h1>${esc(title)}</h1>${paras}`;
+  return "data:text/html;charset=utf-8," + encodeURIComponent(html);
+}
+const LOGIN_URLS = {
+  gmail: "https://accounts.google.com/", google: "https://accounts.google.com/", github: "https://github.com/login",
+  facebook: "https://www.facebook.com/login", instagram: "https://www.instagram.com/accounts/login/",
+  reddit: "https://www.reddit.com/login", twitter: "https://x.com/login", x: "https://x.com/login",
+  amazon: "https://www.amazon.com/ap/signin", netflix: "https://www.netflix.com/login", linkedin: "https://www.linkedin.com/login",
+  spotify: "https://accounts.spotify.com/en/login", discord: "https://discord.com/login", twitch: "https://www.twitch.tv/login",
+  paypal: "https://www.paypal.com/signin", ebay: "https://signin.ebay.com/", nexus: "https://users.nexusmods.com/auth/sign_in"
+};
+
 function buildPage(topic) {
   const T = topic.replace(/[<>]/g, "").slice(0, 60);
   const html = `<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>${T}</title>
@@ -128,11 +153,15 @@ OPEN      open pinterest · google.com · open youtube, reddit, github (many at 
 SEARCH    search cute cats · open youtube and search lofi · images of neon city · videos of cats
           buy usb-c hub · map of Tokyo · directions from LA to Vegas · wiki quantum · define entropy
           weather Denver · translate hola · news about AI · stock AAPL · recipe carbonara · what is a qubit?
-PAGE      read · click 7 · click the Sign in button · type me@x.com into email · submit · press enter
-          scroll down · scroll to bottom · back · forward · reload · find "returns" on the page · list tabs
+PAGE      read · click the Sign in button · type me@x.com into email · submit · press enter
+          scroll to bottom · back · forward · reload · find "returns" on the page · list tabs
+READING   summarize · reader view · read aloud / stop reading · translate this page
+          word count · list links · extract emails · extract prices · copy url · copy page text
+VIEW      dark mode · zoom in · zoom out · reset zoom
 SHOP      add to cart · buy now · checkout   (acts on the current page; sensitive steps ask first)
 FORMS     fill name=John, email=john@x.com, message: hello
 PROFILE   set my info name=Mike, email=me@x.com, phone=555-1234   →  then just say:  fill my info
+LOGIN     log into github   (opens the site's real login; passwords never entered)
 EMAIL     email jane@x.com about lunch saying are you free at noon?   (opens a Gmail draft — you send)
 EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business   (a template — for real design, ask Claude directly)
@@ -166,6 +195,50 @@ async function interpret(text) {
   if (/^(buy now|buy it now)$/i.test(l)) { const r = await clickByText("buy now"); return { text: r.ok ? "Clicked Buy now (confirm if prompted)." : "🚫 " + r.error, blocked: !r.ok }; }
   if (/^(checkout|check out|proceed to checkout|place order)$/i.test(l)) { const r = await clickByText("checkout"); return { text: r.ok ? "Clicked Checkout (confirm if prompted)." : "🚫 " + r.error, blocked: !r.ok }; }
   if (/^(sign in|log ?in)$/i.test(l)) { const r = await clickByText("sign in"); return { text: r.ok ? "Clicked Sign in." : "🚫 " + r.error, blocked: !r.ok }; }
+
+  // translate the current page
+  if (/^translate (this|the) page$|^translate page$/i.test(l)) { const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); const u = tab?.url || ""; if (!/^https?:/.test(u)) return { text: "Open a normal web page first, then say “translate this page”." }; await exec("open_tab", { url: "https://translate.google.com/translate?sl=auto&tl=en&u=" + enc(u) }); return { text: "Opened a translated view of this page." }; }
+
+  // summarize (extractive, keyless)
+  if (/^(summari[sz]e|summary|tl;?dr|key points|main points)( (this|the) (page|article)| it)?$/i.test(l)) {
+    const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true };
+    const pts = summarize(r.text, 6); if (!pts.length) return { text: "Couldn't find readable article text on this page." };
+    return { text: `📄 ${r.title}\n\n• ${pts.join("\n• ")}\n\n(Extractive summary — the highest-signal sentences pulled straight from the page. For real analysis/rewriting, use 🟢 Claude API.)` };
+  }
+  // reader view
+  if (/^(reader|reader view|read this|clean view|declutter|simplify)( (this|the) page)?$/i.test(l)) {
+    const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true };
+    if ((r.text || "").length < 40) return { text: "Not enough article text here for a reader view." };
+    await exec("open_tab", { url: readerPage(r.title, r.text) }); return { text: "Opened a clean, distraction-free reader view." };
+  }
+  // read aloud (local text-to-speech)
+  if (/^(read (this )?(aloud|to me)|speak|say this|start reading)$/i.test(l)) { const r = await exec("speak", {}); return { text: r.ok ? "🔊 Reading the page aloud… say “stop reading” to stop." : "🚫 " + r.error, blocked: !r.ok }; }
+  if (/^(stop( reading| speaking)?|quiet|shush|be quiet)$/i.test(l)) { await exec("stopspeak", {}); return { text: "Stopped reading." }; }
+
+  // links / emails / prices
+  if (/^(list |show |get )?links$/i.test(l)) { const r = await exec("links", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true }; const list = r.links.slice(0, 60).map((x) => `• ${x.text || x.href}\n  ${x.href}`).join("\n"); return { text: `${r.links.length} links:\n${list}`, els: true }; }
+  if (/^(extract |find |get |list )?e-?mails?$/i.test(l)) { const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true }; const em = [...new Set(r.text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/g) || [])]; return { text: em.length ? `${em.length} emails:\n` + em.join("\n") : "No email addresses found on this page." }; }
+  if (/^(extract |find |get |list )?prices?$/i.test(l)) { const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true }; const pr = [...new Set(r.text.match(/[$£€]\s?\d[\d,]*(?:\.\d{2})?/g) || [])]; return { text: pr.length ? `${pr.length} prices:\n` + pr.join("  ·  ") : "No prices found on this page." }; }
+  // word count / reading time
+  if (/^(word count|reading time|how many words|how long)( (is )?(this|the) (page|article))?$/i.test(l)) {
+    const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true };
+    const words = (r.text.match(/\S+/g) || []).length, mins = Math.max(1, Math.round(words / 220));
+    return { text: `📄 ${r.title}\n${words.toLocaleString()} words · ~${mins} min read` };
+  }
+  // dark mode / zoom / copy
+  if (/^(dark|night)( mode)?$|^toggle dark( mode)?$/i.test(l)) { const r = await exec("darkmode", {}); return { text: r.ok ? "🌙 " + r.did + " (run again to toggle)." : "🚫 " + r.error }; }
+  if (/^zoom in$/i.test(l)) { const r = await exec("zoom", { dir: "in" }); return { text: r.ok ? "🔍 " + r.did : "🚫 " + r.error }; }
+  if (/^zoom out$/i.test(l)) { const r = await exec("zoom", { dir: "out" }); return { text: r.ok ? "🔍 " + r.did : "🚫 " + r.error }; }
+  if (/^(reset zoom|zoom reset|actual size)$/i.test(l)) { const r = await exec("zoom", { dir: "reset" }); return { text: r.ok ? "🔍 " + r.did : "🚫 " + r.error }; }
+  if (/^copy (this )?(url|link|address)$/i.test(l)) { const r = await exec("copy", {}); return { text: r.ok ? "📋 Copied the page URL." : "🚫 " + r.error }; }
+  if (/^copy (the )?(page )?text$/i.test(l)) { const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error }; const c = await exec("copy", { text: r.text.slice(0, 100000) }); return { text: c.ok ? "📋 Copied the page text." : "🚫 " + c.error }; }
+
+  // per-site login shortcuts
+  if ((m = t.match(/^(?:log ?in(?:to| to)?|sign ?in(?:to| to)?)\s+(.+)$/i))) {
+    const site = m[1].trim().toLowerCase().replace(/\.com$/, ""); const url = LOGIN_URLS[site];
+    if (url) { await exec("open_tab", { url }); const prof = (await chrome.storage.local.get("profile")).profile || {}; return { text: `Opened ${site} login.${prof.email ? ` Say “fill my info” to prefill your email — passwords are never entered.` : ""}` }; }
+    const r = await exec("open_tab", { url: resolve(m[1]) }); return { text: r.ok ? `Opened ${m[1]} — click Sign in there (I never enter passwords).` : "🚫 " + r.error, blocked: !r.ok };
+  }
 
   // email compose → opens a Gmail draft (you review & send)
   if ((m = t.match(/^(?:email|e-?mail|write (?:an? )?email to|send (?:an? )?email to|compose (?:to|an email to))\s+(\S+@\S+|[\w .'-]+?)(?:\s+(?:about|re:?|subject:?|saying|that says|with subject)\s+(.+))?$/i))) {

@@ -95,6 +95,38 @@
       const old = el.style.backgroundColor; el.style.backgroundColor = "#ffe066"; setTimeout(() => { el.style.backgroundColor = old; }, 2500);
       return { ok: true, did: "found", text: (el.innerText || "").trim().slice(0, 120) };
     }
+    if (kind === "extract") {
+      const pick = document.querySelector("article, main, [role=main]") || document.body;
+      const clone = pick.cloneNode(true);
+      clone.querySelectorAll("script,style,nav,header,footer,aside,form,noscript,iframe,svg,button").forEach((e) => e.remove());
+      const txt = (clone.innerText || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+      return { ok: true, title: document.title, url: location.href, text: txt.slice(0, 60000) };
+    }
+    if (kind === "links") {
+      const seen = new Set(), links = [];
+      for (const a of document.querySelectorAll("a[href]")) { const href = a.href; if (!/^https?:/.test(href) || seen.has(href)) continue; seen.add(href); links.push({ text: (a.innerText || "").trim().slice(0, 70), href }); if (links.length >= 300) break; }
+      return { ok: true, links };
+    }
+    if (kind === "speak") {
+      try { speechSynthesis.cancel(); const src = action.text || (document.querySelector("article, main, [role=main]") || document.body).innerText || ""; const u = new SpeechSynthesisUtterance(src.slice(0, 8000)); u.rate = 1; speechSynthesis.speak(u); return { ok: true, did: "reading aloud" }; } catch (e) { return { ok: false, error: "text-to-speech unavailable: " + e.message }; }
+    }
+    if (kind === "stopspeak") { try { speechSynthesis.cancel(); } catch {} return { ok: true, did: "stopped" }; }
+    if (kind === "darkmode") {
+      let s = document.getElementById("__cl_dark"); if (s) { s.remove(); return { ok: true, did: "dark mode off" }; }
+      s = document.createElement("style"); s.id = "__cl_dark";
+      s.textContent = "html{filter:invert(1) hue-rotate(180deg)!important;background:#111!important}img,video,picture,canvas,svg,[style*='background-image']{filter:invert(1) hue-rotate(180deg)!important}";
+      document.documentElement.appendChild(s); return { ok: true, did: "dark mode on" };
+    }
+    if (kind === "zoom") {
+      const b = document.body; let z = parseFloat(b.style.zoom || "1") || 1;
+      if (action.dir === "in") z += 0.1; else if (action.dir === "out") z = Math.max(0.3, z - 0.1); else z = 1;
+      b.style.zoom = String(z); return { ok: true, did: "zoom " + Math.round(z * 100) + "%" };
+    }
+    if (kind === "copy") {
+      const val = action.text ?? location.href;
+      try { await navigator.clipboard.writeText(val); return { ok: true, did: "copied" }; }
+      catch { const ta = document.createElement("textarea"); ta.value = val; document.body.appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok ? { ok: true, did: "copied" } : { ok: false, error: "clipboard blocked on this page" }; }
+    }
 
     let el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
     if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form"); // submit: fall back to the page's form

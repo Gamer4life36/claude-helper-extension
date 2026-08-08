@@ -46,11 +46,18 @@ PAGE      read                                 list clickable/typeable items wit
           type me@x.com into email             type into a field (matched by label/name)
           submit · press enter · scroll to bottom · back · forward · reload
           find "returns" on the page           scroll to + highlight text on the page
+READING   summarize                            extractive summary of the article (no AI)
+          reader view                          clean, distraction-free version of the page
+          read aloud / stop reading            local text-to-speech (Web Speech API)
+          translate this page                  opens a translated view
+          word count · list links · extract emails · extract prices · copy url · copy page text
+VIEW      dark mode · zoom in · zoom out · reset zoom     injected on the current page
 SHOP      add to cart · buy now · checkout     acts on the current page (sensitive steps ask first)
 FORMS     fill name=John, email=john@x.com, message: hello
           → reads the page, matches each key to a field by label/name/placeholder, fills it
 PROFILE   set my info name=Mike, email=me@x.com, phone=555-1234
           fill my info                         one-word autofill on any form (from saved profile)
+LOGIN     log into github                      opens the site's real login (passwords never entered)
 EMAIL     email jane@x.com about lunch saying are you free at noon?   opens a Gmail draft (you send)
 EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business
@@ -63,7 +70,10 @@ help                                          show all commands
 - **Tabs:** open (one or many), navigate, list, close, new tab
 - **Nav:** scroll (incl. to top/bottom), back, forward, reload, find-text-on-page
 - **Page:** read (elements + labels + text), click by text/number, type, submit, multi-field form fill
+- **Reading tools (all local, no AI):** extractive **summarize**, **reader view**, **read-aloud** (text-to-speech), page **translate**, word count, link/email/price extraction, copy text/URL
+- **View:** dark-mode toggle, zoom in/out/reset (injected on the page)
 - **Profile autofill:** save your contact details once (`set my info …`), then `fill my info` completes any form
+- **Login shortcuts:** `log into <site>` opens the real login page (never types passwords)
 - **Compose:** Gmail drafts, calendar events, tweets — opened prefilled for you to review & send
 - **Build:** generate a templated starter page from a topic (opens as a local `data:` page)
 - **Safety:** sensitive sites prompt per action; adult sites blocked; never auto-enters/stores passwords or payment info
