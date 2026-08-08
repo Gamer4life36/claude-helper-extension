@@ -5,6 +5,47 @@ the right of the browser**, where you type commands to control the page. It has
 **broad host permissions** (works even on sites that block the official AI
 extensions) and is bounded entirely by a **user-defined policy**.
 
+---
+
+## ✅ Abilities & ⛔ Limits — read this first (for testers)
+
+**What it CAN do — Free mode, no API key, no cost.** It's a *smart command interpreter*:
+you type an instruction, it matches a pattern and drives the browser.
+- **Navigate & search:** open sites by name/URL (or several at once), search within a
+  specific site (YouTube, Amazon, Pinterest…), and intent searches — `images of…`,
+  `videos of…`, `directions from A to B`, `weather…`, `define…`, `stock…`, natural questions.
+- **Control the page:** read the page, click by number or visible text, type into fields,
+  submit, press enter, scroll (incl. to top/bottom), back/forward/reload, find & highlight text.
+- **Forms:** fill fields by name (`fill name=…, email=…`), or save a profile once
+  (`set my info …`) and autofill any form with `fill my info`.
+- **Reading tools (all computed locally):** `summarize` (extractive), `reader view`,
+  `read aloud` (text-to-speech), `translate this page`, `word count`,
+  `list links` / `extract emails` / `extract prices`, `copy url` / `copy page text`.
+- **View:** `dark mode`, `zoom in/out/reset`.
+- **Compose (opened prefilled for you to send):** Gmail drafts, calendar events, tweets.
+- **Shortcuts:** `log into <site>` (opens the real login), `add to cart` / `checkout`.
+- **Chaining:** `open youtube then search lofi then scroll down`.
+
+**What it CANNOT do — this needs 🟢 Claude API (or just ask Claude directly):**
+- ❌ **Reason about a goal you didn't phrase as a command.** It matches patterns; it doesn't understand intent.
+- ❌ **Write original text or design.** `summarize` *ranks existing sentences* — it can't rewrite them.
+  `build a page` *fills a fixed template* — it can't design something custom.
+- ❌ **Judge or decide** ("which of these is best?"), or **hold a conversation.**
+- ❌ Anything requiring memory of context across steps beyond simple `then` chaining.
+
+> In short: **Free mode is the hands; the API is the brain.** Every mechanical/navigational
+> task is keyless and free. True understanding + generation is the one thing behind the paid API.
+> A Claude *subscription does not include API access* — that's a separate, pay-per-use key.
+
+## 🔒 Safety & privacy (important — you're sharing this)
+- **Runs entirely in your browser.** Nothing is sent anywhere except the websites *you* tell it to open. There is no analytics, no server (unless *you* start the optional bridge).
+- **Never types or stores passwords or payment details.** Password fields are hard-blocked.
+- **`set my info` stores only what you type** (name/email/phone/address) in local browser storage on your machine. Don't put secrets there.
+- **Adult sites are blocked** by domain *and* keyword (including search terms). **Banks, logins, and checkout pages prompt for approval before every action.**
+- **Broad permissions:** this extension can act on *all* sites — that's what makes it useful, but it means **only load it from a source you trust.** It is an unpacked developer extension for personal/testing use, not a Web Store product.
+
+---
+
 ## Two modes
 | Mode | Brain? | Needs |
 |------|--------|-------|
