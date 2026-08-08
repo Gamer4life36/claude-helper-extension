@@ -45,7 +45,32 @@ you type an instruction, it matches a pattern and drives the browser.
 - **Never types or stores passwords or payment details.** Password fields are hard-blocked.
 - **`set my info` stores only what you type** (name/email/phone/address) in local browser storage on your machine. Don't put secrets there.
 - **Adult sites are blocked** by domain *and* keyword (including search terms). **Banks, logins, and checkout pages prompt for approval before every action.**
-- **Broad permissions:** this extension can act on *all* sites — that's what makes it useful, but it means **only load it from a source you trust.** It is an unpacked developer extension for personal/testing use, not a Web Store product.
+- **Broad permissions:** this extension can act on *all* sites — that's what makes it useful, but it means **only load it from a source you trust.** It is an unpacked developer extension (personal, testing, or in-house professional use), not a Web Store product.
+
+---
+
+## How it compares to the official "Claude for Chrome"
+
+Different tools for different jobs — be clear-eyed about which you need.
+
+| | **Claude Helper — Free mode** | **Official Claude for Chrome / 🟢 API mode** |
+|---|---|---|
+| Brain | Pattern-matching (deterministic) | Real Claude reasoning |
+| Cost | **Free** | Subscription / pay-per-use API |
+| Speed | **Instant** (no model round-trip) | Model latency per step |
+| Privacy | **Fully local** — nothing leaves your browser | Page content sent to the model |
+| Repeatability | **Same command → same action, every time** (auditable) | May vary run to run |
+| Works on sites that block AI extensions | **Yes** (broad permissions) | Often restricted |
+| **Macros** (save & replay a routine) | **Yes** | n/a |
+| Understands a vague/novel goal | ❌ | ✅ |
+| Writes original text / designs | ❌ | ✅ |
+| Judgment & conversation | ❌ | ✅ |
+
+**Bottom line for professional use:** for **repeatable, well-defined workflows** — opening your
+morning tabs, filling the same forms, extracting data, batch navigation, one-key routines — a
+deterministic tool is often *better* than an LLM: faster, free, private, and reliable. For
+**open-ended thinking** (research, writing, judgment), you want the API/official extension.
+This tool is the **hands**; the API is the **brain**. Many pros want the hands.
 
 ---
 
@@ -107,6 +132,8 @@ EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business
           → generates a templated page (starter design). For a *custom* design, ask Claude directly.
 CHAIN     open youtube then search lofi then scroll down     run steps in sequence
+MACROS    save macro standup = open github then open gmail then open calendar
+          run standup · macros · delete macro standup       teach a routine once, replay forever
 help                                          show all commands
 ```
 
@@ -157,4 +184,6 @@ the same policy (can't bypass forbidden rules or sensitive-site confirmations).
 - `server/` — optional Claude bridge (needs an API key)
 
 ## License
-Personal use.
+**MIT** — see [LICENSE](LICENSE). Free for personal *and* commercial/professional use; modify
+and redistribute freely. Provided as-is, without warranty. (If you deploy it at work, review the
+permissions and policy for your environment first — it can act on all sites.)

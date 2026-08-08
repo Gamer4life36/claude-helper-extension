@@ -129,6 +129,9 @@ const LOGIN_URLS = {
   spotify: "https://accounts.spotify.com/en/login", discord: "https://discord.com/login", twitch: "https://www.twitch.tv/login",
   paypal: "https://www.paypal.com/signin", ebay: "https://signin.ebay.com/", nexus: "https://users.nexusmods.com/auth/sign_in"
 };
+// ── macros / saved workflows (professional repeatable automation) ───────────
+const getMacros = async () => (await chrome.storage.local.get("macros")).macros || {};
+const setMacros = async (mac) => chrome.storage.local.set({ macros: mac });
 
 function buildPage(topic) {
   const T = topic.replace(/[<>]/g, "").slice(0, 60);
@@ -166,11 +169,30 @@ EMAIL     email jane@x.com about lunch saying are you free at noon?   (opens a G
 EVENTS    add event dentist friday 3pm · tweet hello world
 BUILD     build a landing page for my PC-building business   (a template — for real design, ask Claude directly)
 CHAIN     open youtube then search lofi then scroll down
+MACROS    save macro standup = open github then open gmail then open calendar
+          run standup · macros · delete macro standup     (teach a routine once, replay it forever)
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
 
-async function interpret(text) {
+async function interpret(text, depth = 0) {
   const t = text.trim(), l = t.toLowerCase(); let m;
   if (/^(help|\?|what can you do|commands)\b/.test(l)) return { text: HELP, els: true };
+
+  // ── macros / saved workflows ──
+  if ((m = t.match(/^(?:save|teach|create|define)\s+macro\s+([\w-]+)\s*(?:=|:|as)\s*(.+)$/i))) {
+    const mac = await getMacros(); mac[m[1].toLowerCase()] = m[2].trim(); await setMacros(mac);
+    return { text: `💾 Saved macro “${m[1]}”. Run it anytime with:  run ${m[1]}` };
+  }
+  if (/^(list )?macros$/i.test(l)) { const mac = await getMacros(); const keys = Object.keys(mac); return { text: keys.length ? "Saved macros:\n" + keys.map((k) => `• ${k} = ${mac[k]}`).join("\n") : "No macros yet. Save one, e.g.:\n  save macro standup = open github then open gmail then open calendar", els: true }; }
+  if ((m = t.match(/^(?:delete|remove|forget)\s+macro\s+([\w-]+)$/i))) { const mac = await getMacros(); const k = m[1].toLowerCase(); if (!mac[k]) return { text: `No macro “${m[1]}”.` }; delete mac[k]; await setMacros(mac); return { text: `🗑 Deleted macro “${m[1]}”.` }; }
+  if ((m = t.match(/^(?:run|do|play|macro)\s+([\w-]+)$/i))) {
+    const mac = await getMacros(); const body = mac[m[1].toLowerCase()];
+    if (!body) return { text: `No macro “${m[1]}”. See yours with:  macros` };
+    if (depth > 4) return { text: "Macro nesting too deep — stopped." , blocked: true };
+    const steps = body.split(/\s+(?:and then|then)\s+|\s*;\s*/i).map((s) => s.trim()).filter(Boolean);
+    addMsg("sys", `▶ running macro “${m[1]}” (${steps.length} step${steps.length > 1 ? "s" : ""})`);
+    for (const step of steps) { const r = await interpret(step, depth + 1); addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : ""); if (r.blocked) return { text: `Macro “${m[1]}” stopped — a step was blocked.`, blocked: true }; }
+    return { text: `✓ Macro “${m[1]}” done.` };
+  }
 
   // navigation
   if (/^scroll( down)?$|^down$/.test(l)) { await exec("scroll", { direction: "down" }); return { text: "Scrolled down." }; }
