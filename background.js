@@ -36,18 +36,23 @@ const BRIDGE_URL = "ws://localhost:8787";
 async function getPolicy() {
   const { policy } = await chrome.storage.local.get("policy");
   const p = policy || {};
-  return {
+  const merged = {
     ...DEFAULT_POLICY, ...p,
     capabilities: { ...DEFAULT_POLICY.capabilities, ...(p.capabilities || {}) },
     rules: { ...DEFAULT_POLICY.rules, ...(p.rules || {}) },
-    // migrate any legacy string confirmDomains → {host, mode:"ask"}
     confirmSites: (p.confirmSites || p.confirmDomains?.map((h) => ({ host: h, mode: "ask" })) || DEFAULT_POLICY.confirmSites)
   };
+  // one-time seed: guarantee the adult blocklists exist even for older stored policies
+  if (!p.seeded) {
+    merged.forbiddenDomains = [...new Set([...(p.forbiddenDomains || []), ...ADULT_DOMAINS])];
+    merged.forbiddenKeywords = [...new Set([...(p.forbiddenKeywords || []), ...ADULT_KEYWORDS])];
+    merged.seeded = true;
+  }
+  return merged;
 }
-chrome.runtime.onInstalled.addListener(async () => {
-  const cur = await chrome.storage.local.get("policy");
-  if (!cur.policy) await chrome.storage.local.set({ policy: DEFAULT_POLICY });
-});
+async function seedPolicy() { await chrome.storage.local.set({ policy: await getPolicy() }); }
+chrome.runtime.onInstalled.addListener(seedPolicy);
+seedPolicy(); // also on service-worker start, to fix already-installed copies
 
 const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch { return ""; } };
 const suffixMatch = (host, list) => (list || []).some((d) => host === d || host.endsWith("." + d));
@@ -58,13 +63,23 @@ function forbiddenReason(host, policy) {
   if (k) return `${host} matches forbidden keyword "${k}"`;
   return null;
 }
+// Also block searching for forbidden terms (e.g. typing "pornhub" -> Google search).
+function searchQueryForbidden(url, policy) {
+  try {
+    const u = new URL(url);
+    const q = (u.searchParams.get("q") || u.searchParams.get("query") || u.searchParams.get("p") || "").toLowerCase();
+    const isSearch = /google\.|bing\.|duckduckgo\.|yahoo\.|search\./.test(u.hostname) && q;
+    if (isSearch) { const k = (policy.forbiddenKeywords || []).find((w) => q.includes(w)); if (k) return `search query matches forbidden keyword "${k}"`; }
+  } catch {}
+  return null;
+}
 
 async function execTool(tool, args = {}) {
   const policy = await getPolicy();
   if (!policy.capabilities[tool]) return { ok: false, error: `blocked: capability "${tool}" is disabled in policy` };
 
   if (tool === "open_tab" || tool === "navigate") {
-    const why = forbiddenReason(hostOf(args.url), policy);
+    const why = forbiddenReason(hostOf(args.url), policy) || searchQueryForbidden(args.url, policy);
     if (why) return { ok: false, forbidden: true, error: "blocked: " + why };
   }
   switch (tool) {

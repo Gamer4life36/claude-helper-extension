@@ -58,7 +58,7 @@ async function openUrl(url) {
   if (!url) return;
   box.style.display = "none";
   const r = await send({ type: "OPEN_TAB", url });
-  show(r.ok ? "Opened: " + (r.url || url) : r);
+  show(r.ok ? "Opened: " + (r.url || url) : "🚫 " + (r.error || "blocked"));
 }
 
 input.addEventListener("input", () => { active = -1; renderSuggest(input.value); });
