@@ -1,5 +1,9 @@
 # Claude Helper — Configurable Browser Assistant
 
+> ⚖️ **Unofficial.** Not affiliated with, endorsed by, or sponsored by Anthropic. "Claude" is a
+> trademark of Anthropic, PBC. This is an independent browser tool; it optionally connects to
+> Claude only if *you* supply your own Anthropic API key.
+
 > 🧪 **Testing this?** Start with **[TESTERS.md](TESTERS.md)** — install steps + commands to try.
 > Grab the ready-to-load zip from the **[Releases](https://github.com/Gamer4life36/claude-helper-extension/releases)** page.
 
