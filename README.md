@@ -46,9 +46,12 @@ you type an instruction, it matches a pattern and drives the browser.
 
 ## 🔒 Safety & privacy (important — you're sharing this)
 - **Runs entirely in your browser.** Nothing is sent anywhere except the websites *you* tell it to open. There is no analytics, no server (unless *you* start the optional bridge).
-- **Never types or stores passwords or payment details.** Password fields are hard-blocked.
+- **Hard blocks — never run, not even with approval** (toggle in Options):
+  - 💳 **Purchases/payments** — Buy now / Place order / Pay / Complete purchase are blocked. You can browse and reach checkout; the final buy is *your* click.
+  - ✍️ **Legal paperwork / e-signatures** — DocuSign/Adobe Sign etc. and any "sign / agree / apply / submit application" action are blocked.
+  - 🔑 **Sensitive data** — it won't type passwords, SSN, credit/debit card, CVV, bank/routing/account #, passport, license, tax ID, or date of birth into any field.
 - **`set my info` stores only what you type** (name/email/phone/address) in local browser storage on your machine. Don't put secrets there.
-- **Adult sites are blocked** by domain *and* keyword (including search terms). **Banks, logins, and checkout pages prompt for approval before every action.**
+- **Adult sites are blocked** by domain *and* keyword (including search terms). **Banks, logins, and checkout pages also prompt for approval before every action.**
 - **Broad permissions:** this extension can act on *all* sites — that's what makes it useful, but it means **only load it from a source you trust.** It is an unpacked developer extension (personal, testing, or in-house professional use), not a Web Store product.
 
 ---

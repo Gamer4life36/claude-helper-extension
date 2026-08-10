@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const send = (msg) => new Promise((res) => chrome.runtime.sendMessage(msg, res));
-const CAP_LIST = ["open_tab", "navigate", "close_tab", "list_tabs", "read_page", "click", "type", "submit"];
+const CAP_LIST = ["open_tab", "navigate", "close_tab", "list_tabs", "read_page", "click", "type", "submit", "scroll", "reload", "back", "forward", "find_text", "extract", "links", "speak", "darkmode", "zoom", "copy"];
 let policy;
 
 function renderCaps() {
@@ -33,6 +33,9 @@ async function load() {
   renderCaps();
   renderConfirm();
   $("forbidPasswordTyping").checked = !!policy.rules.forbidPasswordTyping;
+  $("forbidSensitiveData").checked = policy.rules.forbidSensitiveData !== false;
+  $("forbidPurchases").checked = policy.rules.forbidPurchases !== false;
+  $("forbidLegalSigning").checked = policy.rules.forbidLegalSigning !== false;
   $("forbidSubmitOnSensitive").checked = !!policy.rules.forbidSubmitOnSensitive;
   $("allowBridgeInv").checked = !policy.rules.allowBridge;
   $("confirmAllSubmits").checked = !!policy.rules.confirmAllSubmits;
@@ -46,6 +49,9 @@ $("save").onclick = async () => {
   policy.capabilities = {};
   document.querySelectorAll("[data-cap]").forEach((el) => (policy.capabilities[el.dataset.cap] = el.checked));
   policy.rules.forbidPasswordTyping = $("forbidPasswordTyping").checked;
+  policy.rules.forbidSensitiveData = $("forbidSensitiveData").checked;
+  policy.rules.forbidPurchases = $("forbidPurchases").checked;
+  policy.rules.forbidLegalSigning = $("forbidLegalSigning").checked;
   policy.rules.forbidSubmitOnSensitive = $("forbidSubmitOnSensitive").checked;
   policy.rules.allowBridge = !$("allowBridgeInv").checked;
   policy.rules.confirmAllSubmits = $("confirmAllSubmits").checked;

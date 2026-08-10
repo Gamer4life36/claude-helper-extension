@@ -29,8 +29,11 @@
   <h2 class="allow">✅ Capabilities (what it's allowed to do at all)</h2>
   <div id="caps"></div>
 
-  <h2 class="forbid">⛔ Hard limits (never allowed)</h2>
-  <label class="rule"><input type="checkbox" id="forbidPasswordTyping" /> <span>Never type into password fields <small>Blocks entering a password even with approval.</small></span></label>
+  <h2 class="forbid">⛔ Hard limits (never allowed — not even with approval)</h2>
+  <label class="rule"><input type="checkbox" id="forbidPasswordTyping" /> <span>Never type into password fields</span></label>
+  <label class="rule"><input type="checkbox" id="forbidSensitiveData" /> <span>Never enter sensitive data <small>SSN, credit/debit card, CVV, bank/routing/account #, passport, license, tax ID, date of birth.</small></span></label>
+  <label class="rule"><input type="checkbox" id="forbidPurchases" /> <span>Never complete a purchase <small>Blocks Buy now / Place order / Pay / Complete purchase buttons. You can still browse and reach checkout — the final buy is yours.</small></span></label>
+  <label class="rule"><input type="checkbox" id="forbidLegalSigning" /> <span>Never sign or submit legal documents <small>Blocks e-signature sites (DocuSign, Adobe Sign, etc.) and "sign / agree / apply" actions.</small></span></label>
   <label class="rule"><input type="checkbox" id="forbidSubmitOnSensitive" /> <span>Never submit forms on sensitive pages</span></label>
   <label class="rule"><input type="checkbox" id="allowBridgeInv" /> <span>Disable the Claude auto-bridge <small>Only you (popup) can drive it.</small></span></label>
 

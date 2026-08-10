@@ -139,6 +139,24 @@
     if (kind === "submit" && policy?.rules?.forbidSubmitOnSensitive && sensitivity(kind, el).mode)
       return { ok: false, forbidden: true, error: "forbidden by policy: submitting on sensitive pages is disabled" };
 
+    // ── HARD BLOCKS (never run, even with confirm): sensitive data, purchases, legal signing ──
+    const btnLabel = (el.innerText || el.value || el.getAttribute("aria-label") || "").toLowerCase();
+    if (kind === "type" && policy?.rules?.forbidSensitiveData) {
+      const meta = [el.getAttribute("name"), el.getAttribute("id"), el.getAttribute("placeholder"), el.getAttribute("aria-label"), getLabel(el), el.getAttribute("autocomplete")].join(" ").toLowerCase();
+      const hit = (policy.sensitiveFieldPatterns || []).find((p) => meta.includes(p));
+      if (hit) return { ok: false, forbidden: true, error: `HARD BLOCK: I won't enter sensitive data (field looks like "${hit}"). Please type this yourself.` };
+    }
+    if ((kind === "click" || kind === "submit") && policy?.rules?.forbidPurchases) {
+      const hit = (policy.purchaseKeywords || []).find((w) => btnLabel.includes(w));
+      if (hit) return { ok: false, forbidden: true, error: `HARD BLOCK: I won't complete a purchase ("${hit}"). Do the final buy/pay step yourself.` };
+    }
+    if ((kind === "click" || kind === "submit") && policy?.rules?.forbidLegalSigning) {
+      const onLegal = (policy.legalDomains || []).some((d) => host() === d || host().endsWith("." + d));
+      const kwHit = (policy.legalKeywords || []).find((w) => btnLabel.includes(w));
+      if (kwHit || (onLegal && (kind === "submit" || /\b(sign|agree|accept|submit|finish|continue|adopt)\b/.test(btnLabel))))
+        return { ok: false, forbidden: true, error: "HARD BLOCK: I won't sign or submit legal documents. Please do this yourself." };
+    }
+
     // confirm tier
     const s = sensitivity(kind, el);
     if (s.mode === "ask") {
