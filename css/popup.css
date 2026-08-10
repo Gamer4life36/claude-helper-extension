@@ -1,0 +1,18 @@
+body { width: 360px; font-family: Segoe UI, Arial, sans-serif; padding: 12px; margin: 0; }
+h1 { font-size: 15px; margin: 0 0 4px; }
+.sub { font-size: 11px; color: #666; margin-bottom: 10px; }
+.row { display: flex; gap: 6px; margin: 4px 0; }
+input, button, select { font-size: 12px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; }
+input { flex: 1; }
+button { background: #f5f5f5; cursor: pointer; }
+button:hover { background: #eaeaea; }
+button.act { background: #e8f0ff; }
+pre { background: #111; color: #9fe6a0; padding: 8px; border-radius: 6px; max-height: 200px; overflow: auto; font-size: 11px; white-space: pre-wrap; margin-top: 8px; }
+.safe { color: #2e7d32; } .warn { color: #b3261e; font-weight: 600; }
+/* autocomplete dropdown */
+#searchWrap { position: relative; }
+#suggest { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #ccc; border-top: 0; border-radius: 0 0 8px 8px; box-shadow: 0 6px 18px rgba(0,0,0,.15); z-index: 50; max-height: 240px; overflow: auto; display: none; }
+.sg { display: flex; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; font-size: 13px; }
+.sg:hover, .sg.active { background: #eef4ff; }
+.sg .name { font-weight: 600; } .sg .dom { color: #888; font-size: 11px; margin-left: auto; }
+.sg .fav { width: 16px; text-align: center; }

@@ -1,0 +1,16 @@
+body { font-family: Segoe UI, Arial, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #1a1a1a; }
+h1 { font-size: 20px; } h2 { font-size: 15px; margin-top: 22px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+.cap { display: inline-flex; align-items: center; gap: 6px; width: 48%; margin: 4px 0; font-size: 14px; }
+label.rule { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; font-size: 14px; }
+.rule small { color: #666; display: block; }
+textarea { width: 100%; height: 80px; font-family: Consolas, monospace; font-size: 12px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+.desc { color: #555; font-size: 12px; margin: 2px 0 8px; }
+.forbid { color: #b3261e; } .confirm { color: #b06a00; } .allow { color: #2e7d32; }
+button { padding: 8px 14px; font-size: 13px; border-radius: 8px; border: 0; background: #3b82f6; color: #fff; cursor: pointer; }
+#save { padding: 10px 18px; font-size: 14px; margin-top: 18px; }
+#saved { color: #2e7d32; margin-left: 10px; font-size: 13px; }
+.site { display: flex; gap: 8px; align-items: center; margin: 5px 0; }
+.site input { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; }
+.site select { padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; }
+.site .rm { background: #eee; color: #333; padding: 6px 10px; }
+.addbtn { background: #eef4ff; color: #1a56db; margin-top: 6px; }
