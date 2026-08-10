@@ -5,7 +5,7 @@
 > Claude only if *you* supply your own Anthropic API key.
 
 > 🧪 **Testing this?** Start with **[TESTERS.md](TESTERS.md)** — install steps + commands to try.
-> Grab the ready-to-load zip from the **[Releases](https://github.com/Gamer4life36/claude-helper-extension/releases)** page.
+> Grab the ready-to-load zip from the **[Releases](https://github.com/Gamer4life36/claude-companion-extension/releases)** page.
 
 A personal Chrome extension (Manifest V3). Click the icon → a **chat panel docks to
 the right of the browser**, where you type commands to control the page. It has
@@ -193,7 +193,7 @@ help                                          show all commands
 
 ## Install (unpacked)
 **Easiest:** download `claude-companion-extension.zip` from the
-[Releases](https://github.com/Gamer4life36/claude-helper-extension/releases) page and unzip it.
+[Releases](https://github.com/Gamer4life36/claude-companion-extension/releases) page and unzip it.
 Or `git clone` this repo. Then:
 1. `chrome://extensions` → enable **Developer mode**
 2. **Load unpacked** → select the folder (the one containing `manifest.json`)

@@ -16,14 +16,14 @@ It runs **100% on your machine, for free** — no account, no API key, no cost t
 ## 1. Install (2 minutes)
 
 **Option A — Download the zip (easiest)**
-1. Go to the [**Releases**](https://github.com/Gamer4life36/claude-helper-extension/releases) page.
+1. Go to the [**Releases**](https://github.com/Gamer4life36/claude-companion-extension/releases) page.
 2. Download **`claude-companion-extension.zip`** from the latest release.
-3. **Unzip it** somewhere you'll keep it (e.g. `Documents\claude-helper-extension`).
+3. **Unzip it** somewhere you'll keep it (e.g. `Documents\claude-companion-extension`).
    *(Don't run it from inside the zip — Chrome needs a real folder.)*
 
 **Option B — Clone with git**
 ```bash
-git clone https://github.com/Gamer4life36/claude-helper-extension.git
+git clone https://github.com/Gamer4life36/claude-companion-extension.git
 ```
 
 **Then load it into Chrome (same for both options):**
@@ -103,7 +103,7 @@ Please note anything that:
 - **Broke or threw an error** (copy the red text from the panel).
 - **Felt like it should exist** but didn't.
 
-👉 **Report it:** open an [**Issue**](https://github.com/Gamer4life36/claude-helper-extension/issues)
+👉 **Report it:** open an [**Issue**](https://github.com/Gamer4life36/claude-companion-extension/issues)
 with the exact command you typed and what happened. Screenshots help.
 
 ---
