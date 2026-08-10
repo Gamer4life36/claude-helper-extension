@@ -243,6 +243,7 @@ AI        ask what's a good name for a tech blog     (on-device Gemini Nano — 
           switch to 🧠 On-device AI up top for plain-English chat + smarter "summarize"
 SHARE     share to facebook https://store.steampowered.com/app/…   (opens the share dialog — you click Post)
           also: share this page to reddit · share <url> to linkedin/x
+FILES     files      open a local file manager — pick a folder to browse, read & edit files (saves on your click)
 SKILLS    skill new research: gather info on a topic => open google and search $input then open youtube and search $input
           use research neon cities   ·   do gather info on quantum computing   ·   skills   ·   skill delete research
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
@@ -293,6 +294,7 @@ async function interpret(text, depth = 0, opts = {}) {
   if (/^close( this)?( tab)?$/.test(l)) { const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); await exec("close_tab", { tabId: tab.id }); return { text: "Closed tab." }; }
   if (/^(new tab|open( a)? new tab)$/.test(l)) { await exec("open_tab", { url: "about:blank" }); return { text: "New tab." }; }
   if (/^(list )?tabs$/.test(l)) { const r = await exec("list_tabs", {}); return { text: r.ok ? r.tabs.map((x) => `• ${x.title || x.url}`).join("\n") : "🚫 " + r.error, els: true }; }
+  if (/^(files|file manager|open files|edit files|browse files|open a file)$/i.test(l)) { chrome.tabs.create({ url: chrome.runtime.getURL("files.html") }); return { text: "📁 Opened the file manager. Pick a folder to browse, read, and edit files on this computer — changes save only when you click Save." }; }
   if (/^(scroll to |go to )?(the )?bottom$|^scroll bottom$/.test(l)) { await exec("scroll", { to: "bottom" }); return { text: "Scrolled to bottom." }; }
   if (/^(scroll to |go to )?(the )?top$|^scroll top$/.test(l)) { await exec("scroll", { to: "top" }); return { text: "Scrolled to top." }; }
   if (/^(press|hit)\s+enter$/.test(l)) { const r = await exec("submit", {}); return { text: r.ok ? "Submitted." : "🚫 " + r.error, blocked: !r.ok }; }

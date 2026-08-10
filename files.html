@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Claude Companion — Files</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; font-family: Segoe UI, Arial, sans-serif; font-size: 13px; background: #0f1218; color: #e8e8e8; }
+    header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #222; flex-wrap: wrap; }
+    button { padding: 8px 13px; border-radius: 8px; border: 0; background: #3b82f6; color: #fff; cursor: pointer; font-size: 13px; }
+    button:disabled { background: #2a3340; color: #7b8494; cursor: not-allowed; }
+    #filter { flex: 1; min-width: 120px; padding: 7px 10px; border-radius: 8px; border: 1px solid #333; background: #161b22; color: #e8e8e8; }
+    .muted { color: #8a93a3; font-size: 12px; }
+    .spacer { flex: 1; }
+    main { flex: 1; display: flex; min-height: 0; }
+    #list { width: 300px; border-right: 1px solid #222; overflow: auto; padding: 6px; }
+    .fi { padding: 5px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Consolas, monospace; font-size: 12px; color: #cdd4de; }
+    .fi:hover { background: #161b22; }
+    .fi.active { background: #1f4bd8; color: #fff; }
+    #editorWrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    #fileinfo { padding: 8px 12px; border-bottom: 1px solid #1c2129; font-family: Consolas, monospace; font-size: 12px; color: #9aa4b2; }
+    #editor { flex: 1; width: 100%; border: 0; resize: none; padding: 12px; background: #0b0e13; color: #e8e8e8; font-family: Consolas, monospace; font-size: 13px; line-height: 1.5; }
+    #editor:disabled { color: #6b7280; }
+    #note { padding: 7px 12px; border-top: 1px solid #222; }
+    .warn { color: #e0a800; }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="pick">📁 Open folder</button>
+    <span id="folder" class="muted">No folder open</span>
+    <span class="spacer"></span>
+    <input id="filter" placeholder="filter files…" autocomplete="off" />
+    <button id="save" disabled>💾 Save</button>
+    <span id="status" class="muted"></span>
+  </header>
+  <main>
+    <aside id="list"></aside>
+    <section id="editorWrap">
+      <div id="fileinfo">Pick a folder, then choose a file to view or edit. <b>Ctrl+S</b> saves.</div>
+      <textarea id="editor" spellcheck="false" disabled></textarea>
+    </section>
+  </main>
+  <div id="note" class="muted">🔒 Files stay on your computer. Only the folder <b>you</b> pick is accessible, and changes are written <b>only when you Save</b>. <span class="warn">Don't point it at system folders.</span></div>
+  <script src="files.js"></script>
+</body>
+</html>

@@ -20,6 +20,7 @@ Three modes (user-selectable in the panel):
 | `content.js` | Injected on every page: performs page actions (read/click/type/submit/scroll/extract/…) and **enforces hard blocks** |
 | `sidepanel.html` / `sidepanel.js` | The chat UI, command interpreter, mode toggle, on-device AI, Skills, Macros |
 | `options.html` / `options.js` | Policy configuration UI (capabilities, hard limits, forbidden/confirm sites) |
+| `files.html` / `files.js` | Local file manager/editor via the File System Access API (user picks a folder; read/edit/save) |
 | `popup.html` / `popup.js` | Legacy manual console (kept for reference) |
 | `icons/` | Extension icons (16/32/48/128) |
 | `server/` | Optional Claude API bridge (Node + `ws`); only runs if the user starts it with their key |

@@ -52,6 +52,7 @@ you type an instruction, it matches a pattern and drives the browser.
   - 🔑 **Sensitive data** — it won't type passwords, SSN, credit/debit card, CVV, bank/routing/account #, passport, license, tax ID, or date of birth into any field.
 - **`set my info` stores only what you type** (name/email/phone/address) in local browser storage on your machine. Don't put secrets there.
 - **Adult sites are blocked** by domain *and* keyword (including search terms). **Banks, logins, and checkout pages also prompt for approval before every action.**
+- **Local files (`files` command):** opens a file manager that can read/edit files on your computer — but **only inside a folder you explicitly pick** via the OS folder dialog (File System Access API), and it **writes only when you click Save**. Nothing is uploaded. Don't point it at system folders.
 - **Broad permissions:** this extension can act on *all* sites — that's what makes it useful, but it means **only load it from a source you trust.** It is an unpacked developer extension (personal, testing, or in-house professional use), not a Web Store product.
 
 ---
@@ -170,6 +171,7 @@ MACROS    save macro standup = open github then open gmail then open calendar
           run standup · macros · delete macro standup       teach a routine once, replay forever
 AI        ask <question>                       on-device Gemini Nano (local & free, Chrome 138+)
 SHARE     share to facebook <url>              opens FB/LinkedIn/Reddit/X share dialog (you click Post)
+FILES     files                                open the local file manager (pick a folder → browse/read/edit; saves on your click)
 SKILLS    skill new <name>: <when> => <steps>  ·  use <name> <input>  ·  do <request>  ·  skills
           (ships with a starter "gamepost" skill: use gamepost <your game name>)
 help                                          show all commands
