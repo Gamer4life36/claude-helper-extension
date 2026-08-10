@@ -166,7 +166,9 @@ CHAIN     open youtube then search lofi then scroll down     run steps in sequen
 MACROS    save macro standup = open github then open gmail then open calendar
           run standup · macros · delete macro standup       teach a routine once, replay forever
 AI        ask <question>                       on-device Gemini Nano (local & free, Chrome 138+)
+SHARE     share to facebook <url>              opens FB/LinkedIn/Reddit/X share dialog (you click Post)
 SKILLS    skill new <name>: <when> => <steps>  ·  use <name> <input>  ·  do <request>  ·  skills
+          (ships with a starter "gamepost" skill: use gamepost <your game name>)
 help                                          show all commands
 ```
 

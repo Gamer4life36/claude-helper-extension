@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claude Companion",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "minimum_chrome_version": "138",
   "description": "Configurable browser-control helper. You define capabilities, forbidden sites (incl. adult-content blocking), and per-site confirm modes. Unofficial; not affiliated with Anthropic.",
   "icons": {

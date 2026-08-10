@@ -19,7 +19,13 @@ const SEARCH_URLS = {
   ebay: "https://www.ebay.com/sch/i.html?_nkw=", etsy: "https://www.etsy.com/search?q=", github: "https://github.com/search?q=",
   wikipedia: "https://en.wikipedia.org/w/index.php?search=", twitter: "https://x.com/search?q=", x: "https://x.com/search?q=",
   walmart: "https://www.walmart.com/search?q=", target: "https://www.target.com/s?searchTerm=", spotify: "https://open.spotify.com/search/",
-  imdb: "https://www.imdb.com/find/?q=", netflix: "https://www.netflix.com/search?q=", nexus: "https://www.nexusmods.com/search/?gsearch="
+  imdb: "https://www.imdb.com/find/?q=", netflix: "https://www.netflix.com/search?q=", nexus: "https://www.nexusmods.com/search/?gsearch=",
+  steam: "https://store.steampowered.com/search/?term="
+};
+// share a link to a social network (opens the official share dialog — you click Post)
+const SHARE_URLS = {
+  facebook: "https://www.facebook.com/sharer/sharer.php?u=", linkedin: "https://www.linkedin.com/sharing/share-offsite/?url=",
+  reddit: "https://www.reddit.com/submit?url=", twitter: "https://twitter.com/intent/tweet?url=", x: "https://twitter.com/intent/tweet?url="
 };
 function siteSearchUrl(site, q) { const k = site.toLowerCase().replace(/\.com$/, ""); return SEARCH_URLS[k] ? SEARCH_URLS[k] + encodeURIComponent(q) : "https://www.google.com/search?q=" + encodeURIComponent(site + " " + q); }
 const looksUrl = (s) => /^https?:\/\//i.test(s) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(s);
@@ -140,6 +146,13 @@ const setMacros = async (mac) => chrome.storage.local.set({ macros: mac });
 // lets on-device AI pick the best skill by its description.
 const getSkills = async () => (await chrome.storage.local.get("skills")).skills || {};
 const setSkills = async (s) => chrome.storage.local.set({ skills: s });
+// seed a starter skill once, so Skills work out of the box
+chrome.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }) => {
+  if (skillsSeeded) return;
+  const s = await getSkills();
+  if (!s.gamepost) s.gamepost = { description: "announce or promote a Steam game on social media", steps: 'open steam and search $input then ask Write a short, punchy Facebook post announcing my Steam game "$input". Include [STORE LINK] and [RELEASE DATE] placeholders, a one-line hook, 2-3 relevant hashtags, and keep it under 80 words.' };
+  await setSkills(s); await chrome.storage.local.set({ skillsSeeded: true });
+});
 async function runSkill(name, input, depth = 0) {
   const skills = await getSkills(); const sk = skills[name];
   if (!sk) return { text: `No skill “${name}”.` };
@@ -147,7 +160,12 @@ async function runSkill(name, input, depth = 0) {
   const body = sk.steps.replace(/\$\{?(input|topic|query|q|x)\}?/gi, input || "");
   const steps = body.split(/\s+(?:and then|then)\s+|\s*;\s*/i).map((s) => s.trim()).filter(Boolean);
   addMsg("sys", `✳ skill “${name}”${input ? ` · “${input}”` : ""} (${steps.length} step${steps.length > 1 ? "s" : ""})`);
-  for (const step of steps) { const r = await interpret(step, depth + 1); addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : ""); if (r.blocked) return { text: `Skill “${name}” stopped — a step was blocked.`, blocked: true }; }
+  for (const step of steps) {
+    const r = await interpret(step, depth + 1);
+    if (r.nano) { await runNano(r.nano); continue; }            // AI step inside a skill → on-device model
+    addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : "");
+    if (r.blocked) return { text: `Skill “${name}” stopped — a step was blocked.`, blocked: true };
+  }
   return { text: `✓ Skill “${name}” done.` };
 }
 
@@ -223,6 +241,8 @@ MACROS    save macro standup = open github then open gmail then open calendar
           run standup · macros · delete macro standup     (teach a routine once, replay it forever)
 AI        ask what's a good name for a tech blog     (on-device Gemini Nano — local & free, Chrome 138+)
           switch to 🧠 On-device AI up top for plain-English chat + smarter "summarize"
+SHARE     share to facebook https://store.steampowered.com/app/…   (opens the share dialog — you click Post)
+          also: share this page to reddit · share <url> to linkedin/x
 SKILLS    skill new research: gather info on a topic => open google and search $input then open youtube and search $input
           use research neon cities   ·   do gather info on quantum computing   ·   skills   ·   skill delete research
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
@@ -332,6 +352,16 @@ async function interpret(text, depth = 0, opts = {}) {
     const site = m[1].trim().toLowerCase().replace(/\.com$/, ""); const url = LOGIN_URLS[site];
     if (url) { await exec("open_tab", { url }); const prof = (await chrome.storage.local.get("profile")).profile || {}; return { text: `Opened ${site} login.${prof.email ? ` Say “fill my info” to prefill your email — passwords are never entered.` : ""}` }; }
     const r = await exec("open_tab", { url: resolve(m[1]) }); return { text: r.ok ? `Opened ${m[1]} — click Sign in there (I never enter passwords).` : "🚫 " + r.error, blocked: !r.ok };
+  }
+
+  // share a link to a social network → opens that network's share dialog (you click Post)
+  if ((m = t.match(/^(?:share|post)\s+(?:(https?:\/\/\S+)\s+)?(?:this(?:\s+page)?\s+)?(?:to|on)\s+(facebook|fb|linkedin|reddit|twitter|x)(?:\s+(https?:\/\/\S+))?$/i))) {
+    const net = ({ fb: "facebook" }[m[2].toLowerCase()] || m[2].toLowerCase());
+    let url = m[1] || m[3];
+    if (!url) { const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); url = tab?.url || ""; }
+    if (!/^https?:/.test(url)) return { text: `Give a link, e.g. “share to ${net} https://store.steampowered.com/app/…”.` };
+    await exec("open_tab", { url: SHARE_URLS[net] + enc(url) });
+    return { text: `Opened ${net}'s share dialog for that link. Add your caption and click Post — I never auto-publish.` };
   }
 
   // email compose → opens a Gmail draft (you review & send)
