@@ -31,7 +31,7 @@ git clone https://github.com/Gamer4life36/claude-helper-extension.git
 2. Turn on **Developer mode** (top-right toggle)
 3. Click **Load unpacked**
 4. Select the **folder** (the one containing `manifest.json`)
-5. You'll see **“Claude Companion (Dev)”** appear. Pin it if you like.
+5. You'll see **“Claude Companion”** appear. Pin it if you like.
 
 ---
 
@@ -74,6 +74,17 @@ fill my info
 Chain steps together:
 ```
 open reddit then search mechanical keyboards then scroll down
+```
+🧠 **On-device AI** (needs Chrome 138+ & capable hardware — click the **🧠 On-device AI** toggle up top; the first `ask` downloads the model once):
+```
+ask give me three catchy names for a gaming YouTube channel
+```
+🧩 **Skills** (teach a reusable workflow, then run it):
+```
+skill new research: gather info on a topic => open google and search $input then open youtube and search $input
+```
+```
+use research mechanical keyboards
 ```
 Fun ones:
 ```

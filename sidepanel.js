@@ -133,6 +133,56 @@ const LOGIN_URLS = {
 const getMacros = async () => (await chrome.storage.local.get("macros")).macros || {};
 const setMacros = async (mac) => chrome.storage.local.set({ macros: mac });
 
+// ── Skills (agent-skills standard: name + description + steps) ──────────────
+// Inspired by Anthropic Agent Skills & the open agent-skills standard: a skill
+// is a named capability with a description (what + WHEN to trigger) and a body
+// of steps. Explicit invoke: "use <name> <input>". Implicit: "do <request>"
+// lets on-device AI pick the best skill by its description.
+const getSkills = async () => (await chrome.storage.local.get("skills")).skills || {};
+const setSkills = async (s) => chrome.storage.local.set({ skills: s });
+async function runSkill(name, input, depth = 0) {
+  const skills = await getSkills(); const sk = skills[name];
+  if (!sk) return { text: `No skill “${name}”.` };
+  if (depth > 4) return { text: "Skill nesting too deep — stopped.", blocked: true };
+  const body = sk.steps.replace(/\$\{?(input|topic|query|q|x)\}?/gi, input || "");
+  const steps = body.split(/\s+(?:and then|then)\s+|\s*;\s*/i).map((s) => s.trim()).filter(Boolean);
+  addMsg("sys", `✳ skill “${name}”${input ? ` · “${input}”` : ""} (${steps.length} step${steps.length > 1 ? "s" : ""})`);
+  for (const step of steps) { const r = await interpret(step, depth + 1); addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : ""); if (r.blocked) return { text: `Skill “${name}” stopped — a step was blocked.`, blocked: true }; }
+  return { text: `✓ Skill “${name}” done.` };
+}
+
+// ── On-device AI: Chrome built-in Gemini Nano (Prompt/Summarizer API) ───────
+// Local, free, offline after a one-time model download. Needs Chrome 138+ and
+// capable hardware. Everything degrades gracefully when unavailable.
+let _lm = null;
+const nanoPresent = () => typeof LanguageModel !== "undefined";
+async function nanoAvail() { try { return nanoPresent() ? await LanguageModel.availability() : "unavailable"; } catch { return "unavailable"; } }
+async function nanoReady() { const a = await nanoAvail(); return a === "available" || a === "readily-available"; }
+async function nanoSession(onProg) {
+  if (_lm) return _lm;
+  _lm = await LanguageModel.create({
+    temperature: 0.7, topK: 3,
+    initialPrompts: [{ role: "system", content: "You are Claude Companion, a concise, privacy-respecting browser assistant running on-device. Answer briefly and helpfully." }],
+    monitor(mn) { mn.addEventListener("downloadprogress", (e) => onProg && onProg(e.loaded)); }
+  });
+  return _lm;
+}
+async function nanoAsk(prompt, onProg) { const s = await nanoSession(onProg); return (await s.prompt(prompt)).trim(); }
+async function nanoSummarize(text, onProg) {
+  if (typeof Summarizer !== "undefined") {
+    try {
+      const a = await Summarizer.availability();
+      if (a !== "unavailable") { const sm = await Summarizer.create({ type: "key-points", format: "markdown", length: "medium", monitor(mn) { mn.addEventListener("downloadprogress", (e) => onProg && onProg(e.loaded)); } }); const out = await sm.summarize(text.slice(0, 12000)); try { sm.destroy(); } catch {} return out; }
+    } catch {}
+  }
+  return nanoAsk("Summarize the following page content in 5 concise bullet points:\n\n" + text.slice(0, 6000), onProg);
+}
+async function nanoPickSkill(request, skills) {
+  const list = Object.entries(skills).map(([n, s]) => `- ${n}: ${s.description}`).join("\n");
+  const ans = (await nanoAsk(`Route the request to ONE browser skill or none.\nSkills:\n${list}\n\nRequest: "${request}"\n\nReply with ONLY the matching skill name, or "none".`)).toLowerCase().replace(/[^a-z0-9-]/g, "");
+  return skills[ans] ? ans : null;
+}
+
 function buildPage(topic) {
   const T = topic.replace(/[<>]/g, "").slice(0, 60);
   const html = `<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>${T}</title>
@@ -171,11 +221,31 @@ BUILD     build a landing page for my PC-building business   (a template — for
 CHAIN     open youtube then search lofi then scroll down
 MACROS    save macro standup = open github then open gmail then open calendar
           run standup · macros · delete macro standup     (teach a routine once, replay it forever)
+AI        ask what's a good name for a tech blog     (on-device Gemini Nano — local & free, Chrome 138+)
+          switch to 🧠 On-device AI up top for plain-English chat + smarter "summarize"
+SKILLS    skill new research: gather info on a topic => open google and search $input then open youtube and search $input
+          use research neon cities   ·   do gather info on quantum computing   ·   skills   ·   skill delete research
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
 
-async function interpret(text, depth = 0) {
+async function interpret(text, depth = 0, opts = {}) {
   const t = text.trim(), l = t.toLowerCase(); let m;
   if (/^(help|\?|what can you do|commands)\b/.test(l)) return { text: HELP, els: true };
+
+  // on-device AI chat (explicit) — the submit handler routes this to Gemini Nano
+  if ((m = t.match(/^(?:ask|chat|hey companion|hey claude)\s+(.+)/i))) return { nano: m[1] };
+
+  // ── skills (agent-skills standard: name + description + steps) ──
+  if (/^(skills|list skills)$/i.test(l)) { const s = await getSkills(); const keys = Object.keys(s); return { text: keys.length ? "🧩 Skills:\n" + keys.map((k) => `• ${k} — ${s[k].description}`).join("\n") : 'No skills yet. Create one, e.g.:\n  skill new research: gather info on a topic => open google and search $input then open youtube and search $input', els: true }; }
+  if ((m = t.match(/^skill\s+(?:new|add|create)\s+([\w-]+)\s*:\s*(.+?)\s*=>\s*(.+)$/i))) { const s = await getSkills(); s[m[1].toLowerCase()] = { description: m[2].trim(), steps: m[3].trim() }; await setSkills(s); return { text: `🧩 Saved skill “${m[1]}”. Run it:  use ${m[1]} <input>${nanoPresent() ? `   — or implicitly:  do <request>` : ""}` }; }
+  if ((m = t.match(/^skill\s+(?:show|view)\s+([\w-]+)$/i))) { const s = await getSkills(); const sk = s[m[1].toLowerCase()]; return { text: sk ? `🧩 ${m[1]}\nwhen: ${sk.description}\nsteps: ${sk.steps}` : `No skill “${m[1]}”.` }; }
+  if ((m = t.match(/^skill\s+(?:delete|remove|forget)\s+([\w-]+)$/i))) { const s = await getSkills(); const k = m[1].toLowerCase(); if (!s[k]) return { text: `No skill “${m[1]}”.` }; delete s[k]; await setSkills(s); return { text: `🗑 Deleted skill “${m[1]}”.` }; }
+  if ((m = t.match(/^(?:use|@|\/)\s*([\w-]+)(?:\s+(.+))?$/i)) && (await getSkills())[m[1].toLowerCase()]) return runSkill(m[1].toLowerCase(), (m[2] || "").trim(), depth);
+  if ((m = t.match(/^do\s+(.+)/i))) {
+    const skills = await getSkills(); if (!Object.keys(skills).length) return { text: 'No skills yet. Create one with "skill new …".' };
+    if (!(await nanoReady())) return { text: `🧠 On-device AI isn’t ready, so I can’t auto-pick a skill. Invoke one directly:  use <name> <input>.\nYour skills: ${Object.keys(skills).join(", ")}` };
+    const pick = await nanoPickSkill(m[1], skills); if (!pick) return { text: `No skill matched “${m[1]}”. Your skills: ${Object.keys(skills).join(", ")}` };
+    return runSkill(pick, m[1], depth);
+  }
 
   // ── macros / saved workflows ──
   if ((m = t.match(/^(?:save|teach|create|define)\s+macro\s+([\w-]+)\s*(?:=|:|as)\s*(.+)$/i))) {
@@ -184,7 +254,7 @@ async function interpret(text, depth = 0) {
   }
   if (/^(list )?macros$/i.test(l)) { const mac = await getMacros(); const keys = Object.keys(mac); return { text: keys.length ? "Saved macros:\n" + keys.map((k) => `• ${k} = ${mac[k]}`).join("\n") : "No macros yet. Save one, e.g.:\n  save macro standup = open github then open gmail then open calendar", els: true }; }
   if ((m = t.match(/^(?:delete|remove|forget)\s+macro\s+([\w-]+)$/i))) { const mac = await getMacros(); const k = m[1].toLowerCase(); if (!mac[k]) return { text: `No macro “${m[1]}”.` }; delete mac[k]; await setMacros(mac); return { text: `🗑 Deleted macro “${m[1]}”.` }; }
-  if ((m = t.match(/^(?:run|do|play|macro)\s+([\w-]+)$/i))) {
+  if ((m = t.match(/^(?:run|play|macro)\s+([\w-]+)$/i))) {
     const mac = await getMacros(); const body = mac[m[1].toLowerCase()];
     if (!body) return { text: `No macro “${m[1]}”. See yours with:  macros` };
     if (depth > 4) return { text: "Macro nesting too deep — stopped." , blocked: true };
@@ -221,11 +291,13 @@ async function interpret(text, depth = 0) {
   // translate the current page
   if (/^translate (this|the) page$|^translate page$/i.test(l)) { const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); const u = tab?.url || ""; if (!/^https?:/.test(u)) return { text: "Open a normal web page first, then say “translate this page”." }; await exec("open_tab", { url: "https://translate.google.com/translate?sl=auto&tl=en&u=" + enc(u) }); return { text: "Opened a translated view of this page." }; }
 
-  // summarize (extractive, keyless)
+  // summarize — abstractive via on-device AI when ready, else extractive fallback
   if (/^(summari[sz]e|summary|tl;?dr|key points|main points)( (this|the) (page|article)| it)?$/i.test(l)) {
     const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true };
+    if ((r.text || "").length < 40) return { text: "Couldn't find readable article text on this page." };
+    if (await nanoReady()) { try { const out = await nanoSummarize(r.text); if (out) return { text: `🧠 ${r.title}\n\n${out}` }; } catch {} }
     const pts = summarize(r.text, 6); if (!pts.length) return { text: "Couldn't find readable article text on this page." };
-    return { text: `📄 ${r.title}\n\n• ${pts.join("\n• ")}\n\n(Extractive summary — the highest-signal sentences pulled straight from the page. For real analysis/rewriting, use 🟢 Claude API.)` };
+    return { text: `📄 ${r.title}\n\n• ${pts.join("\n• ")}\n\n(Extractive summary. Switch to 🧠 On-device AI for a smarter, abstractive summary — free & local.)` };
   }
   // reader view
   if (/^(reader|reader view|read this|clean view|declutter|simplify)( (this|the) page)?$/i.test(l)) {
@@ -332,28 +404,45 @@ async function interpret(text, depth = 0) {
   // submit
   if (/^submit\b/.test(l)) { const r = await exec("submit", {}); return { text: r.ok ? "Submitted." : "🚫 " + r.error, blocked: !r.ok }; }
 
-  // natural questions → Google
-  if (/\?$/.test(t) || /^(what|who|when|where|why|how|is|are|can|does|do|should|which|will|whats|what's)\b/.test(l)) { const r = await exec("open_tab", { url: "https://www.google.com/search?q=" + enc(t) }); return { text: r.ok ? "Searched Google: " + t : "🚫 " + r.error, blocked: !r.ok }; }
+  // natural questions → Google (unless On-device AI mode wants them)
+  if (!opts.noFallback && (/\?$/.test(t) || /^(what|who|when|where|why|how|is|are|can|does|do|should|which|will|whats|what's)\b/.test(l))) { const r = await exec("open_tab", { url: "https://www.google.com/search?q=" + enc(t) }); return { text: r.ok ? "Searched Google: " + t : "🚫 " + r.error, blocked: !r.ok }; }
 
+  // On-device AI mode: let unrecognized text fall through to Gemini Nano
+  if (opts.noFallback) return { fallthrough: true };
   // fallback → site or search
   const url = resolve(t); const r = await exec("open_tab", { url }); return { text: r.ok ? "Opened " + url : "🚫 " + r.error, blocked: !r.ok };
 }
 
-// ── Mode: Free (keyless) vs Claude API (bridge) — default Free ──────────────
-let bridgeUp = false, freeMode = true;
-chrome.storage.local.get("freeMode").then((v) => { if (typeof v.freeMode === "boolean") freeMode = v.freeMode; updateMode(); });
+// ── Mode: 🔵 Free (patterns) · 🧠 On-device AI (Gemini Nano) · 🟢 Claude API ──
+let bridgeUp = false, nanoState = "unknown", mode = "free";
+chrome.storage.local.get("mode").then((v) => { if (["free", "nano", "api"].includes(v.mode)) mode = v.mode; updateMode(); refreshNano(); });
+function setMode(mNew) { mode = mNew; chrome.storage.local.set({ mode: mNew }); updateMode(); }
+async function refreshNano() { nanoState = await nanoAvail(); updateMode(); }
 function updateMode() {
-  document.getElementById("mFree").classList.toggle("active", freeMode);
-  document.getElementById("mApi").classList.toggle("active", !freeMode);
-  if (freeMode) modeEl.innerHTML = '<span class="dot b"></span>Free mode — no API key needed';
-  else modeEl.innerHTML = bridgeUp ? '<span class="dot g"></span>Claude API — bridge connected' : '<span class="dot" style="background:#b3261e"></span>Claude API — start the bridge (node server.js) or add a key';
-  document.getElementById("apiHelp").style.display = (!freeMode && !bridgeUp) ? "block" : "none";
+  const set = (id, on) => { const b = document.getElementById(id); if (b) b.classList.toggle("active", on); };
+  set("mFree", mode === "free"); set("mNano", mode === "nano"); set("mApi", mode === "api");
+  const ready = nanoState === "available" || nanoState === "readily-available";
+  document.getElementById("apiHelp").style.display = (mode === "api" && !bridgeUp) ? "block" : "none";
+  const nh = document.getElementById("nanoHelp"); if (nh) nh.style.display = (mode === "nano" && !ready) ? "block" : "none";
+  if (mode === "free") modeEl.innerHTML = '<span class="dot b"></span>Free mode — pattern commands, no AI';
+  else if (mode === "nano") modeEl.innerHTML = ready ? '<span class="dot g"></span>On-device AI ready — Gemini Nano, local & free'
+    : (nanoState === "downloadable" || nanoState === "after-download") ? '<span class="dot" style="background:#e0a800"></span>On-device AI — model downloads on first use'
+    : nanoState === "downloading" ? '<span class="dot" style="background:#e0a800"></span>On-device AI — downloading model…'
+    : '<span class="dot" style="background:#b3261e"></span>On-device AI unavailable (needs Chrome 138+ & capable hardware)';
+  else modeEl.innerHTML = bridgeUp ? '<span class="dot g"></span>Claude API — bridge connected' : '<span class="dot" style="background:#b3261e"></span>Claude API — start the bridge or add a key';
 }
 async function checkMode() { try { const r = await (await fetch(BRIDGE + "/log")).json(); bridgeUp = !!r.connected; } catch { bridgeUp = false; } updateMode(); }
 setInterval(checkMode, 3000); checkMode();
-document.getElementById("mFree").onclick = () => { freeMode = true; chrome.storage.local.set({ freeMode: true }); updateMode(); addMsg("sys", "🔵 Free mode — command interpreter (no API)."); };
-document.getElementById("mApi").onclick = () => { freeMode = false; chrome.storage.local.set({ freeMode: false }); updateMode(); addMsg("sys", "🟢 Claude API mode — needs the bridge running with your API key."); };
+document.getElementById("mFree").onclick = () => { setMode("free"); addMsg("sys", "🔵 Free mode — pattern commands (no AI)."); };
+document.getElementById("mNano").onclick = async () => { setMode("nano"); await refreshNano(); addMsg("sys", "🧠 On-device AI — local Gemini Nano. Ask in plain English (commands still work). First use downloads the model once."); };
+document.getElementById("mApi").onclick = () => { setMode("api"); addMsg("sys", "🟢 Claude API — needs the bridge running with your API key."); };
 
+async function runNano(prompt) {
+  const div = addMsg("ai", "🧠 thinking…");
+  if (!nanoPresent()) { div.textContent = "🧠 On-device AI (Gemini Nano) needs Chrome 138+ on capable hardware. Use 🔵 Free or 🟢 Claude API instead."; div.className += " blocked"; return; }
+  try { const ans = await nanoAsk(prompt, (frac) => { div.textContent = `🧠 downloading model… ${Math.round(frac * 100)}% (one-time)`; logEl.scrollTop = logEl.scrollHeight; }); div.textContent = ans; logEl.scrollTop = logEl.scrollHeight; }
+  catch (e) { div.textContent = "🧠 on-device AI error: " + (e?.message || e); div.className += " blocked"; }
+}
 async function runViaBridge(text) {
   let before = 0; try { before = (await (await fetch(BRIDGE + "/log")).json()).log.length; } catch {}
   await fetch(BRIDGE + "/task", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task: text }) });
@@ -365,13 +454,19 @@ document.getElementById("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const text = inp.value.trim(); if (!text) return;
   inp.value = ""; addMsg("me", text);
-  if (!freeMode) {
-    if (!bridgeUp) return void addMsg("sys", "🟢 Claude API mode is on but the bridge isn’t running. Start it (node server.js with your API key), or switch to 🔵 Free mode.");
+  if (mode === "api") {
+    if (!bridgeUp) return void addMsg("sys", "🟢 Claude API mode is on but the bridge isn’t running. Start it (node server.js with your API key), or switch modes up top.");
     return runViaBridge(text);
   }
   // chain steps on "then" / "and then" / ";"
   const steps = text.split(/\s+(?:and then|then)\s+|\s*;\s*/i).map((s) => s.trim()).filter(Boolean);
-  for (const step of steps) { const r = await interpret(step); addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : ""); if (r.blocked) break; }
+  for (const step of steps) {
+    const r = await interpret(step, 0, { noFallback: mode === "nano" });
+    if (r.nano) { await runNano(r.nano); continue; }            // explicit "ask …" — any mode
+    if (r.fallthrough) { await runNano(step); continue; }        // 🧠 mode: plain text → local AI
+    addMsg("ai", r.text, r.els ? "els" : r.blocked ? "blocked" : "");
+    if (r.blocked) break;
+  }
 });
 document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
-addMsg("sys", "🔵 Free mode (no API key). Type a command — say “help” for examples. Switch to 🟢 Claude API up top once you add a key.");
+addMsg("sys", "🔵 Free mode. Type a command (say “help”). Up top: 🧠 On-device AI for plain-English chat (local, free), or 🟢 Claude API with your key.");

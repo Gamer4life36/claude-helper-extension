@@ -13,11 +13,11 @@
     #modeToggle { margin-top: 7px; display: inline-flex; border: 1px solid #2a3340; border-radius: 8px; overflow: hidden; }
     .seg { background: #161b22; color: #9aa4b2; border: 0; padding: 4px 11px; font-size: 11px; cursor: pointer; }
     .seg.active { background: #1f4bd8; color: #fff; }
-    #apiHelp { display: none; margin: 8px 12px 0; padding: 10px 12px; background: #141a22; border: 1px solid #2a3340; border-radius: 8px; font-size: 12px; color: #c8d0da; }
-    #apiHelp .ah-t { font-weight: 700; margin-bottom: 6px; }
-    #apiHelp ol { margin: 0 0 6px 16px; padding: 0; } #apiHelp li { margin: 5px 0; }
-    #apiHelp code { background: #0b0e13; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
-    #apiHelp a { color: #7fb0ff; } #apiHelp .ah-n { color: #8a93a3; }
+    #apiHelp, #nanoHelp { display: none; margin: 8px 12px 0; padding: 10px 12px; background: #141a22; border: 1px solid #2a3340; border-radius: 8px; font-size: 12px; color: #c8d0da; }
+    #apiHelp .ah-t, #nanoHelp .ah-t { font-weight: 700; margin-bottom: 6px; }
+    #apiHelp ol, #nanoHelp ol { margin: 0 0 6px 16px; padding: 0; } #apiHelp li, #nanoHelp li { margin: 5px 0; }
+    #apiHelp code, #nanoHelp code { background: #0b0e13; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+    #apiHelp a, #nanoHelp a { color: #7fb0ff; } #apiHelp .ah-n, #nanoHelp .ah-n { color: #8a93a3; }
     .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
     .g { background: #48c774; } .b { background: #3b82f6; }
     #log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -37,11 +37,21 @@
     <a id="policy">⚙ Policy</a>
     <div class="title">🤖 Claude Companion</div>
     <div id="modeToggle">
-      <button id="mFree" class="seg active">🔵 Free mode</button>
-      <button id="mApi" class="seg">🟢 Claude API</button>
+      <button id="mFree" class="seg active">🔵 Free</button>
+      <button id="mNano" class="seg">🧠 On-device AI</button>
+      <button id="mApi" class="seg">🟢 API</button>
     </div>
     <div class="mode" id="mode"><span class="dot b"></span>checking…</div>
   </header>
+  <div id="nanoHelp">
+    <div class="ah-t">🧠 On-device AI (Gemini Nano)</div>
+    <ol>
+      <li>Needs <b>Chrome 138+</b> on capable hardware (~4GB+ GPU VRAM or 16GB RAM, ~22GB free disk).</li>
+      <li>First use <b>downloads the model once</b> (large), then runs <b>locally, free, and offline</b>.</li>
+      <li>Ask plain-English questions, or say <code>ask …</code>. Commands still work in this mode.</li>
+    </ol>
+    <div class="ah-n">100% on-device — nothing is sent to any server. Unavailable here? Use 🔵 Free mode.</div>
+  </div>
   <div id="apiHelp">
     <div class="ah-t">🟢 Use full Claude (paid API)</div>
     <ol>

@@ -78,19 +78,46 @@ This tool is the **hands**; the API is the **brain**. Many pros want the hands.
 
 ---
 
-## Two modes
+## Three modes
 | Mode | Brain? | Needs |
 |------|--------|-------|
-| 🔵 **Free mode** | ❌ no — a smart pattern-based command interpreter | nothing (free) |
-| 🟢 **Claude API** | ✅ yes — real reasoning & conversation | your own Anthropic **API key** (paid) via the bridge |
+| 🔵 **Free** | ❌ pattern-based command interpreter | nothing (free) |
+| 🧠 **On-device AI** | ✅ real reasoning, **local & free** | **Chrome 138+** + capable hardware (built-in Gemini Nano) |
+| 🟢 **Claude API** | ✅ real reasoning & conversation | your own Anthropic **API key** (paid) via the bridge |
 
-A toggle at the top of the panel switches between them. It **defaults to Free** and stays there until you pick Claude API — a running bridge can't hijack it.
+A toggle at the top of the panel switches between them; it **defaults to Free**.
 
-> **Honest note:** without the API key, this is a **command-runner + smart search
-> bar**, not an intelligent assistant. It executes exact commands (`open pinterest`,
-> `read`, `click 7`) but does not think. Real Claude intelligence requires the paid
-> API — a Claude *subscription* does not include API access. (The official *Claude
-> for Chrome* extension gives intelligent in-browser Claude on the Max plan.)
+### 🧠 On-device AI (Chrome built-in Gemini Nano)
+Chrome 138+ ships an on-device model ([Gemini Nano](https://developer.chrome.com/docs/ai/built-in)) reachable from
+extensions via the `LanguageModel` (Prompt API) and `Summarizer` globals. Claude Companion uses it for
+**real, local, private, free** reasoning — no API key, offline after a one-time model download.
+- Plain-English chat (in 🧠 mode) and `ask <question>` (in any mode)
+- Smarter, **abstractive** `summarize` when the model is ready (extractive fallback otherwise)
+- Powers implicit **Skill** selection (below)
+
+Requirements: Chrome 138+, ~4GB+ GPU VRAM (or 16GB RAM + 4 cores), ~22GB free disk for the one-time download.
+Everything degrades gracefully to Free mode when unavailable.
+
+### 🧩 Skills (agent-skills standard)
+Inspired by [Anthropic Agent Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
+and the [open agent-skills standard](https://learn.chatgpt.com/docs/build-skills): a **skill** is a named capability
+with a **description** (what + *when* to trigger) and a body of **steps**. Stored locally.
+```
+skill new research: gather info on a topic => open google and search $input then open youtube and search $input
+skills                          list your skills
+use research neon cities        explicit invoke ($input → "neon cities")
+do gather info on quantum        implicit — on-device AI picks the matching skill by its description
+skill show research | skill delete research
+```
+`$input` (also `$topic` / `$query`) in the steps is replaced with whatever you pass. Explicit `use` works with no AI;
+implicit `do` needs 🧠 On-device AI to route the request.
+
+> **Honest note:** **🔵 Free mode** executes exact commands (`open pinterest`, `read`,
+> `click 7`) — reliable, but it doesn't *think*. For actual reasoning you now have two
+> options: **🧠 On-device AI** (free & local, if your Chrome/hardware supports Gemini
+> Nano — smaller/less capable than a frontier model, but real) or **🟢 Claude API** (a
+> frontier model, your own paid key). A Claude *subscription* does not include API
+> access. (The official *Claude for Chrome* gives in-browser Claude on the Max plan.)
 
 ## The 3-tier policy
 | Tier | Behavior |
@@ -138,6 +165,8 @@ BUILD     build a landing page for my PC-building business
 CHAIN     open youtube then search lofi then scroll down     run steps in sequence
 MACROS    save macro standup = open github then open gmail then open calendar
           run standup · macros · delete macro standup       teach a routine once, replay forever
+AI        ask <question>                       on-device Gemini Nano (local & free, Chrome 138+)
+SKILLS    skill new <name>: <when> => <steps>  ·  use <name> <input>  ·  do <request>  ·  skills
 help                                          show all commands
 ```
 
