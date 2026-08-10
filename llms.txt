@@ -1,0 +1,35 @@
+# Claude Companion
+
+> An unofficial, MIT-licensed Chrome extension (Manifest V3) that docks a chat panel in the browser side panel and drives the current web page from typed commands. It has three modes: Free (deterministic pattern-matching, no AI/network), On-device AI (Chrome built-in Gemini Nano — local, free, offline), and Claude API (an optional local bridge using the user's own Anthropic API key). Not affiliated with, endorsed by, or sponsored by Anthropic; "Claude" is a trademark of Anthropic, PBC.
+
+Key facts:
+- Manifest V3, vanilla JS, no build step, no dependencies in the extension (only the optional `server/` bridge uses `ws`).
+- Runs local-first: Free and On-device modes send nothing off-device; only the user-started bridge makes network calls.
+- Safety model: hard blocks (never run, even with approval) for purchases/payments, legal signing/e-signatures, and sensitive-data entry (passwords, SSN, card numbers, CVV, bank/routing/account #, passport, license, tax ID, DOB); adult sites blocked by domain and keyword; banks/logins/checkout prompt per action; never auto-publishes or auto-submits sensitive forms.
+- Repo: https://github.com/Gamer4life36/claude-companion-extension
+
+## Docs
+- [README](https://github.com/Gamer4life36/claude-companion-extension/blob/main/README.md): full overview — abilities & limits, three modes, on-device AI, Skills, safety/privacy, install, comparison to the official Claude for Chrome.
+- [TESTERS](https://github.com/Gamer4life36/claude-companion-extension/blob/main/TESTERS.md): 2-minute install guide and "try these first" commands for non-developers.
+- [AGENTS](https://github.com/Gamer4life36/claude-companion-extension/blob/main/AGENTS.md): contributor/agent working rules, repo layout, golden security rules, and release process.
+- [LICENSE](https://github.com/Gamer4life36/claude-companion-extension/blob/main/LICENSE): MIT.
+
+## Source
+- [manifest.json](https://github.com/Gamer4life36/claude-companion-extension/blob/main/manifest.json): MV3 manifest — identity, icons, UI surfaces (action/side_panel/options), background, content script, permissions.
+- [background.js](https://github.com/Gamer4life36/claude-companion-extension/blob/main/background.js): service worker — policy engine, tool executor (execTool), and WebSocket bridge client.
+- [content.js](https://github.com/Gamer4life36/claude-companion-extension/blob/main/content.js): injected page script — performs page actions and enforces the hard blocks in every mode.
+- [sidepanel.js](https://github.com/Gamer4life36/claude-companion-extension/blob/main/sidepanel.js): chat UI, command interpreter, mode toggle, on-device AI (Gemini Nano), Skills, and Macros.
+- [options.js](https://github.com/Gamer4life36/claude-companion-extension/blob/main/options.js): policy configuration UI (capabilities, hard limits, forbidden/confirm sites).
+
+## Capabilities (Free mode, keyless)
+- Navigate & search: open sites by name/URL (one or many), site-scoped search, intent shortcuts (images/videos/maps/directions/wiki/define/translate/weather/stock/recipe), natural-question search.
+- Page control: read, click by number or visible text, type, submit, press enter, scroll (incl. to top/bottom), back/forward/reload, find & highlight text.
+- Forms: fill by field name, or save a profile once and autofill any form.
+- Reading (local): summarize (extractive, or abstractive via on-device AI), reader view, read aloud (TTS), translate page, word count, extract links/emails/prices, copy.
+- View: dark mode, zoom.
+- Compose (opened prefilled, user sends): Gmail drafts, calendar events, tweets; share a link to Facebook/LinkedIn/Reddit/X via the network's own dialog.
+- Automation: command chaining (`then`), Macros (save/run/delete), Skills (agent-skills style: name + description + steps; explicit `use` and AI-routed implicit `do`).
+
+## Optional
+- [server/README via package.json](https://github.com/Gamer4life36/claude-companion-extension/blob/main/server/package.json): the optional Node bridge that enables Claude API mode (requires the user's own paid Anthropic API key; separate from a Claude subscription).
+- [Releases](https://github.com/Gamer4life36/claude-companion-extension/releases): ready-to-load `claude-companion-extension.zip` for each version.
