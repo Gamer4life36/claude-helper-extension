@@ -1,0 +1,37 @@
+name: Release
+
+# Push a version tag (e.g. `git tag v0.15.0 && git push --tags`) and this builds
+# the loadable zip and attaches it to the GitHub Release for that tag.
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches manifest version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VER=$(node -p "require('./manifest.json').version")
+          echo "tag=$TAG manifest=$VER"
+          if [ "$TAG" != "$VER" ]; then
+            echo "::warning::Tag ($TAG) does not match manifest version ($VER)"
+          fi
+
+      - name: Build extension zip
+        run: |
+          zip -r claude-companion-extension.zip . \
+            -x ".git/*" ".github/*" "server/node_modules/*" "*.zip"
+
+      - name: Attach zip to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: claude-companion-extension.zip
+          fail_on_unmatched_files: true

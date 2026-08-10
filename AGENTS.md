@@ -51,11 +51,17 @@ Three modes (user-selectable in the panel):
 - Validate `manifest.json` parses (it must stay UTF-8 **without BOM** — Chrome rejects a BOM).
 - Manually load unpacked in Chrome and exercise the changed path.
 
+## CI / automation (`.github/`)
+- **ci.yml** — on every push/PR: `node --check` all JS, validate `manifest.json` (parses, no BOM, v3), and confirm every manifest-referenced file exists. Keep this green.
+- **release.yml** — on a pushed tag `v*`: builds the zip and attaches it to that tag's GitHub Release.
+- **codeql.yml** — security/quality scanning.
+- **dependabot.yml** — weekly bumps for GitHub Actions and `server/` npm deps.
+
 ## Release process
 1. Bump `version` in `manifest.json` (semver).
-2. Commit; end messages with the `Co-Authored-By` trailer already used in history.
-3. Build the distributable zip **excluding** `.git/` and `server/node_modules/`.
-4. `gh release create vX.Y.Z <zip> --notes-file <notes>` on `Gamer4life36/claude-companion-extension`.
+2. Commit (end messages with the `Co-Authored-By` trailer used in history) and push.
+3. Tag it: `git tag vX.Y.Z && git push origin vX.Y.Z` → **release.yml** builds and attaches the zip automatically.
+   - Manual alternative: build the zip (excluding `.git/`, `.github/`, `server/node_modules/`) and run `gh release create vX.Y.Z <zip> --notes-file <notes>`.
 
 ## Don't
 - Don't add analytics, telemetry, or remote calls to the extension.

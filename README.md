@@ -1,5 +1,9 @@
 # Claude Companion — Configurable Browser Assistant
 
+[![CI](https://github.com/Gamer4life36/claude-companion-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/Gamer4life36/claude-companion-extension/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Gamer4life36/claude-companion-extension/actions/workflows/codeql.yml/badge.svg)](https://github.com/Gamer4life36/claude-companion-extension/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > ⚖️ **Unofficial.** Not affiliated with, endorsed by, or sponsored by Anthropic. "Claude" is a
 > trademark of Anthropic, PBC. This is an independent browser tool; it optionally connects to
 > Claude only if *you* supply your own Anthropic API key.

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax-check all JavaScript
+        run: |
+          set -e
+          for f in background.js content.js sidepanel.js options.js popup.js files.js server/server.js; do
+            echo "node --check $f"
+            node --check "$f"
+          done
+
+      - name: Validate manifest.json (parses, no BOM)
+        run: |
+          node -e "
+            const fs = require('fs');
+            const b = fs.readFileSync('manifest.json');
+            if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) { console.error('manifest.json has a UTF-8 BOM (Chrome rejects it)'); process.exit(1); }
+            const m = JSON.parse(b.toString('utf8'));
+            if (m.manifest_version !== 3) { console.error('manifest_version must be 3'); process.exit(1); }
+            console.log('manifest.json OK — ' + m.name + ' v' + m.version);
+          "
+
+      - name: Check every file referenced by the manifest exists
+        run: |
+          node -e "
+            const fs = require('fs');
+            const m = require('./manifest.json');
+            const refs = [
+              m.background && m.background.service_worker,
+              m.side_panel && m.side_panel.default_path,
+              m.options_page,
+              ...(m.content_scripts || []).flatMap(c => c.js || []),
+              ...Object.values(m.icons || {}),
+              ...Object.values((m.action && m.action.default_icon) || {})
+            ].filter(Boolean);
+            let bad = 0;
+            for (const f of refs) { if (!fs.existsSync(f)) { console.error('MISSING referenced file: ' + f); bad++; } }
+            if (bad) process.exit(1);
+            console.log('All ' + refs.length + ' manifest-referenced files present.');
+          "
