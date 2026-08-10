@@ -29,20 +29,20 @@ you type an instruction, it matches a pattern and drives the browser.
   `read aloud` (text-to-speech), `translate this page`, `word count`,
   `list links` / `extract emails` / `extract prices`, `copy url` / `copy page text`.
 - **View:** `dark mode`, `zoom in/out/reset`.
-- **Compose (opened prefilled for you to send):** Gmail drafts, calendar events, tweets.
-- **Shortcuts:** `log into <site>` (opens the real login), `add to cart` / `checkout`.
-- **Chaining:** `open youtube then search lofi then scroll down`.
+- **Compose (opened prefilled for you to send):** Gmail drafts, calendar events, tweets, and social **share** dialogs (Facebook/LinkedIn/Reddit/X) — you write the caption and click Post.
+- **Shortcuts:** `log into <site>` (opens the real login), `add to cart`.
+- **Automate:** **Macros** (`save macro … / run …`), **Skills** (agent-skills style — name + description + steps, invoked explicitly with `use` or implicitly with `do`), and command **chaining** (`open youtube then search lofi then scroll down`).
+- **Local files:** the **`files`** command opens a file manager to browse, read, and **edit** files inside a folder *you* pick — saves only when you click Save.
+- **On-device AI (🧠 mode — free & local):** `ask <question>` and plain-English chat via Chrome's built-in Gemini Nano, plus a smarter abstractive `summarize`. No API key. (Needs Chrome 138+ and capable hardware.)
 
-**What it CANNOT do — this needs 🟢 Claude API (or just ask Claude directly):**
-- ❌ **Reason about a goal you didn't phrase as a command.** It matches patterns; it doesn't understand intent.
-- ❌ **Write original text or design.** `summarize` *ranks existing sentences* — it can't rewrite them.
-  `build a page` *fills a fixed template* — it can't design something custom.
-- ❌ **Judge or decide** ("which of these is best?"), or **hold a conversation.**
-- ❌ Anything requiring memory of context across steps beyond simple `then` chaining.
+**What 🔵 Free mode CANNOT do on its own** — for these, use **🧠 On-device AI** (free, local) or **🟢 Claude API** (paid, frontier model):
+- ❌ **Reason about a goal you didn't phrase as a command.** Free mode matches patterns; it doesn't understand intent.
+- ❌ **Write original text or design.** `summarize` in Free mode *ranks existing sentences*; `build a page` *fills a fixed template*.
+- ❌ **Judge or decide** ("which of these is best?"), or **hold a real conversation.**
 
-> In short: **Free mode is the hands; the API is the brain.** Every mechanical/navigational
-> task is keyless and free. True understanding + generation is the one thing behind the paid API.
-> A Claude *subscription does not include API access* — that's a separate, pay-per-use key.
+> In short: **Free mode is the hands.** For a brain, add **🧠 On-device AI** (free & local, smaller
+> model) or **🟢 Claude API** (a frontier model, your own paid key). A Claude *subscription does not
+> include API access* — that's a separate, pay-per-use key.
 
 ## 🔒 Safety & privacy (important — you're sharing this)
 - **Runs entirely in your browser.** Nothing is sent anywhere except the websites *you* tell it to open. There is no analytics, no server (unless *you* start the optional bridge).
@@ -187,11 +187,14 @@ help                                          show all commands
 - **Login shortcuts:** `log into <site>` opens the real login page (never types passwords)
 - **Compose:** Gmail drafts, calendar events, tweets — opened prefilled for you to review & send
 - **Build:** generate a templated starter page from a topic (opens as a local `data:` page)
-- **Safety:** sensitive sites prompt per action; adult sites blocked; never auto-enters/stores passwords or payment info
+- **Automate:** Macros (save/replay), Skills (name + description + steps; explicit `use` / implicit `do`), command chaining
+- **On-device AI:** `ask …` and 🧠 chat via Chrome's built-in Gemini Nano (free, local); smarter abstractive `summarize`
+- **Local files:** `files` opens a file manager to browse, read, and edit files in a folder you pick (saves on your click)
+- **Safety:** hard blocks for purchases, legal signing, and sensitive-data entry; adult sites blocked; sensitive sites prompt per action; never auto-enters/stores passwords or payment info
 
 > **Where Free mode stops:** it can't invent a novel plan, judge "which is best,"
-> write original page copy/design, or hold a real conversation. Those need 🟢 Claude
-> API mode (below) — or just ask Claude directly for design/writing.
+> write original copy/design, or hold a real conversation. For those, switch to 🧠 On-device
+> AI (free & local) or 🟢 Claude API — or just ask Claude directly for design/writing.
 
 ## Install (unpacked)
 **Easiest:** download `claude-companion-extension.zip` from the
@@ -203,7 +206,7 @@ Or `git clone` this repo. Then:
 
 Full step-by-step for non-developers: **[TESTERS.md](TESTERS.md)**.
 
-## Optional: Full Claude via the bridge (needs an API key)
+## Optional: 🟢 Claude API via the bridge (needs an API key)
 `server/` runs a local agent loop that relays Claude's tool calls to the extension.
 Requires your own Anthropic API key (pay-per-use, **separate** from any subscription).
 ```bash
@@ -211,17 +214,20 @@ cd server && npm install
 $env:ANTHROPIC_API_KEY="sk-ant-..."   # PowerShell
 node server.js
 ```
-When it's running, the side panel auto-switches to 🟢 **Full Claude**. The bridge obeys
-the same policy (can't bypass forbidden rules or sensitive-site confirmations).
+When it's running and you pick **🟢 Claude API** mode, the panel uses it. The bridge obeys
+the same policy (can't bypass hard blocks, forbidden rules, or sensitive-site confirmations).
 
-## Files
-- `manifest.json` — MV3 manifest, permissions, side panel, options
+## Repo layout
+- `manifest.json` — MV3 manifest (identity, icons, UI surfaces, background, content script, permissions)
 - `background.js` — policy engine + tool executor + bridge client
-- `content.js` — page actions + policy enforcement + confirmation modal
-- `sidepanel.html/js` — the right-side chat (command interpreter / bridge)
-- `options.html/js` — capabilities vs. forbidden configuration
+- `content.js` — page actions + policy enforcement (incl. hard blocks) + confirmation modal
+- `sidepanel.html/js` — the right-side chat: command interpreter, mode toggle, on-device AI, Skills, Macros
+- `options.html/js` — capabilities, hard limits, and forbidden/confirm-site configuration
+- `files.html/js` — local file manager/editor (File System Access API; folder you pick)
 - `popup.html/js` — legacy manual console (kept for reference)
-- `server/` — optional Claude bridge (needs an API key)
+- `icons/` — extension icons (16/32/48/128)
+- `server/` — optional Claude API bridge (Node; needs your own API key)
+- `AGENTS.md` — contributor/agent working rules · `llm.txt` — machine-readable project overview
 
 ## License
 **MIT** — see [LICENSE](LICENSE). Free for personal *and* commercial/professional use; modify
