@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  validate:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -15,10 +15,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Syntax-check all JavaScript
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Build (src/*.ts -> js/, server/server.ts -> server/server.js)
+        run: npm run build
+
+      - name: Syntax-check compiled output
         run: |
           set -e
-          for f in background.js content.js sidepanel.js options.js popup.js files.js server/server.js; do
+          for f in js/background.js js/content.js js/sidepanel.js js/options.js js/popup.js js/files.js server/server.js; do
             echo "node --check $f"
             node --check "$f"
           done

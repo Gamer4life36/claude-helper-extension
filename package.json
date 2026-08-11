@@ -1,0 +1,20 @@
+{
+  "name": "claude-companion",
+  "version": "0.14.0",
+  "private": true,
+  "description": "Claude Companion — an unofficial, configurable Chrome extension (MV3). TypeScript sources in src/ compile to the JS the extension loads at the repo root; the optional bridge lives in server/.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.server.json",
+    "watch": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "bridge": "node server/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/chrome": "^0.0.268",
+    "@types/node": "^20.11.0"
+  }
+}

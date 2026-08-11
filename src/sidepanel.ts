@@ -1,8 +1,8 @@
 const logEl = document.getElementById("log");
 const modeEl = document.getElementById("mode");
-const inp = document.getElementById("inp");
+const inp: any = document.getElementById("inp");
 const BRIDGE = "http://localhost:8787";
-const exec = (tool, args = {}) => new Promise((res) => chrome.runtime.sendMessage({ type: "EXEC", tool, args }, res));
+const exec = (tool: any, args: any = {}): Promise<any> => new Promise((res) => chrome.runtime.sendMessage({ type: "EXEC", tool, args }, res));
 
 const SITES = {
   pinterest: "pinterest.com", youtube: "youtube.com", google: "google.com", gmail: "mail.google.com",
@@ -185,8 +185,8 @@ async function nanoSession(onProg) {
   });
   return _lm;
 }
-async function nanoAsk(prompt, onProg) { const s = await nanoSession(onProg); return (await s.prompt(prompt)).trim(); }
-async function nanoSummarize(text, onProg) {
+async function nanoAsk(prompt: any, onProg?: any) { const s = await nanoSession(onProg); return (await s.prompt(prompt)).trim(); }
+async function nanoSummarize(text: any, onProg?: any) {
   if (typeof Summarizer !== "undefined") {
     try {
       const a = await Summarizer.availability();
@@ -196,7 +196,7 @@ async function nanoSummarize(text, onProg) {
   return nanoAsk("Summarize the following page content in 5 concise bullet points:\n\n" + text.slice(0, 6000), onProg);
 }
 async function nanoPickSkill(request, skills) {
-  const list = Object.entries(skills).map(([n, s]) => `- ${n}: ${s.description}`).join("\n");
+  const list = Object.entries(skills).map(([n, s]: any) => `- ${n}: ${s.description}`).join("\n");
   const ans = (await nanoAsk(`Route the request to ONE browser skill or none.\nSkills:\n${list}\n\nRequest: "${request}"\n\nReply with ONLY the matching skill name, or "none".`)).toLowerCase().replace(/[^a-z0-9-]/g, "");
   return skills[ans] ? ans : null;
 }
@@ -248,7 +248,7 @@ SKILLS    skill new research: gather info on a topic => open google and search $
           use research neon cities   ·   do gather info on quantum computing   ·   skills   ·   skill delete research
 Sensitive sites ask before acting; adult sites are blocked. Say "help" anytime.`;
 
-async function interpret(text, depth = 0, opts = {}) {
+async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any> {
   const t = text.trim(), l = t.toLowerCase(); let m;
   if (/^(help|\?|what can you do|commands)\b/.test(l)) return { text: HELP, els: true };
 
@@ -502,3 +502,5 @@ document.getElementById("f").addEventListener("submit", async (e) => {
 });
 document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
 addMsg("sys", "🔵 Free mode. Type a command (say “help”). Up top: 🧠 On-device AI for plain-English chat (local, free), or 🟢 Claude API with your key.");
+
+export {};

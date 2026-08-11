@@ -1,5 +1,5 @@
-const $ = (id) => document.getElementById(id);
-const send = (msg) => new Promise((res) => chrome.runtime.sendMessage(msg, res));
+const $ = (id: any): any => document.getElementById(id);
+const send = (msg: any): Promise<any> => new Promise((res) => chrome.runtime.sendMessage(msg, res));
 const CAP_LIST = ["open_tab", "navigate", "close_tab", "list_tabs", "read_page", "click", "type", "submit", "scroll", "reload", "back", "forward", "find_text", "extract", "links", "speak", "darkmode", "zoom", "copy"];
 let policy;
 
@@ -17,7 +17,7 @@ function siteRow(host = "", mode = "ask") {
       <option value="allow" ${mode === "allow" ? "selected" : ""}>Always allow</option>
     </select>
     <button class="rm">✕</button>`;
-  div.querySelector(".rm").onclick = () => div.remove();
+  (div.querySelector(".rm") as any).onclick = () => div.remove();
   return div;
 }
 
@@ -47,7 +47,7 @@ $("addSite").onclick = () => $("confirmRows").appendChild(siteRow());
 
 $("save").onclick = async () => {
   policy.capabilities = {};
-  document.querySelectorAll("[data-cap]").forEach((el) => (policy.capabilities[el.dataset.cap] = el.checked));
+  document.querySelectorAll("[data-cap]").forEach((el: any) => (policy.capabilities[el.dataset.cap] = el.checked));
   policy.rules.forbidPasswordTyping = $("forbidPasswordTyping").checked;
   policy.rules.forbidSensitiveData = $("forbidSensitiveData").checked;
   policy.rules.forbidPurchases = $("forbidPurchases").checked;
@@ -59,7 +59,7 @@ $("save").onclick = async () => {
   policy.forbiddenKeywords = clean($("forbiddenKeywords").value);
   policy.forbiddenDomains = clean($("forbiddenDomains").value);
   policy.confirmSites = [...document.querySelectorAll("#confirmRows .site")]
-    .map((r) => ({ host: r.querySelector(".host").value.trim().replace(/^www\./, "").toLowerCase(), mode: r.querySelector(".mode").value }))
+    .map((r: any) => ({ host: r.querySelector(".host").value.trim().replace(/^www\./, "").toLowerCase(), mode: r.querySelector(".mode").value }))
     .filter((s) => s.host);
   await send({ type: "SET_POLICY", policy });
   $("saved").textContent = "Saved ✓";
@@ -67,3 +67,5 @@ $("save").onclick = async () => {
 };
 
 load();
+
+export {};

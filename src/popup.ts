@@ -1,8 +1,8 @@
 const out = document.getElementById("out");
 const statusEl = document.getElementById("status");
-const $ = (id) => document.getElementById(id);
-const show = (v) => (out.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2));
-const send = (msg) => new Promise((res) => chrome.runtime.sendMessage(msg, res));
+const $ = (id: any): any => document.getElementById(id);
+const show = (v: any) => (out.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2));
+const send = (msg: any): Promise<any> => new Promise((res) => chrome.runtime.sendMessage(msg, res));
 
 // ── Known sites for autocomplete (name → domain) ───────────────────────────
 const SITES = [
@@ -99,3 +99,5 @@ function refField() { const v = $("ref").value.trim(); return /^\d+$/.test(v) ? 
 $("click").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "click", ...refField() } }));
 $("submit").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "submit", ...refField() } }));
 $("type").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "type", ...refField(), text: $("text").value } }));
+
+export {};

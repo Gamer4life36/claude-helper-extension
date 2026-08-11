@@ -13,9 +13,9 @@
     return els;
   }
   const elByRef = (ref) => document.querySelector(`[data-claude-ref="${CSS.escape(String(ref))}"]`);
-  function getLabel(el) {
+  function getLabel(el: any) {
     try {
-      if (el.id) { const l = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (l && l.innerText.trim()) return l.innerText.trim().slice(0, 60); }
+      if (el.id) { const l: any = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (l && l.innerText.trim()) return l.innerText.trim().slice(0, 60); }
       const p = el.closest("label"); if (p && p.innerText.trim()) return p.innerText.trim().slice(0, 60);
       const a = el.getAttribute("aria-label"); if (a) return a.slice(0, 60);
       return "";
@@ -30,7 +30,7 @@
     return {
       url: location.href, title: document.title, sensitive: !!sensitivity().mode, forbidden: isForbidden(),
       hasPasswordField: !!document.querySelector("input[type=password]"),
-      elements: els.slice(0, 400).map((el) => ({
+      elements: els.slice(0, 400).map((el: any) => ({
         ref: el.getAttribute("data-claude-ref"), tag: el.tagName.toLowerCase(), type: el.getAttribute("type") || "",
         name: el.getAttribute("name") || "", placeholder: el.getAttribute("placeholder") || "", label: getLabel(el),
         text: (el.innerText || el.value || el.getAttribute("aria-label") || "").trim().slice(0, 80),
@@ -43,7 +43,7 @@
   const isForbidden = () => suffixMatch(policy?.forbiddenDomains) || keywordMatch(policy?.forbiddenKeywords);
 
   // Returns {mode:"ask"|"allow"|null}. null = not sensitive → run directly.
-  function sensitivity(kind, el) {
+  function sensitivity(kind?: any, el?: any) {
     // explicit per-site rule wins
     const site = (policy?.confirmSites || []).find((s) => host() === s.host || host().endsWith("." + s.host));
     if (site) return { mode: site.mode || "ask" };
@@ -72,8 +72,8 @@
           <button id="cl-ok" style="padding:8px 14px;border-radius:8px;border:0;background:#b3261e;color:#fff;cursor:pointer">Approve once</button>
         </div></div>`;
       document.documentElement.appendChild(wrap);
-      wrap.querySelector("#cl-ok").onclick = () => { wrap.remove(); resolve(true); };
-      wrap.querySelector("#cl-deny").onclick = () => { wrap.remove(); resolve(false); };
+      (wrap.querySelector("#cl-ok") as any).onclick = () => { wrap.remove(); resolve(true); };
+      (wrap.querySelector("#cl-deny") as any).onclick = () => { wrap.remove(); resolve(false); };
     });
   }
 
@@ -89,7 +89,7 @@
     }
     if (kind === "find_text") {
       const q = (action.text || "").toLowerCase(); if (!q) return { ok: false, error: "no text given" };
-      const el = [...document.querySelectorAll("body *")].find((e) => e.children.length === 0 && (e.innerText || "").toLowerCase().includes(q));
+      const el: any = [...document.querySelectorAll("body *")].find((e: any) => e.children.length === 0 && (e.innerText || "").toLowerCase().includes(q));
       if (!el) return { ok: false, error: `"${action.text}" not found on this page` };
       el.scrollIntoView({ block: "center", behavior: "smooth" });
       const old = el.style.backgroundColor; el.style.backgroundColor = "#ffe066"; setTimeout(() => { el.style.backgroundColor = old; }, 2500);
@@ -97,18 +97,18 @@
     }
     if (kind === "extract") {
       const pick = document.querySelector("article, main, [role=main]") || document.body;
-      const clone = pick.cloneNode(true);
+      const clone: any = pick.cloneNode(true);
       clone.querySelectorAll("script,style,nav,header,footer,aside,form,noscript,iframe,svg,button").forEach((e) => e.remove());
       const txt = (clone.innerText || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
       return { ok: true, title: document.title, url: location.href, text: txt.slice(0, 60000) };
     }
     if (kind === "links") {
       const seen = new Set(), links = [];
-      for (const a of document.querySelectorAll("a[href]")) { const href = a.href; if (!/^https?:/.test(href) || seen.has(href)) continue; seen.add(href); links.push({ text: (a.innerText || "").trim().slice(0, 70), href }); if (links.length >= 300) break; }
+      for (const a of document.querySelectorAll("a[href]") as any) { const href = a.href; if (!/^https?:/.test(href) || seen.has(href)) continue; seen.add(href); links.push({ text: (a.innerText || "").trim().slice(0, 70), href }); if (links.length >= 300) break; }
       return { ok: true, links };
     }
     if (kind === "speak") {
-      try { speechSynthesis.cancel(); const src = action.text || (document.querySelector("article, main, [role=main]") || document.body).innerText || ""; const u = new SpeechSynthesisUtterance(src.slice(0, 8000)); u.rate = 1; speechSynthesis.speak(u); return { ok: true, did: "reading aloud" }; } catch (e) { return { ok: false, error: "text-to-speech unavailable: " + e.message }; }
+      try { speechSynthesis.cancel(); const src = action.text || ((document.querySelector("article, main, [role=main]") || document.body) as any).innerText || ""; const u = new SpeechSynthesisUtterance(src.slice(0, 8000)); u.rate = 1; speechSynthesis.speak(u); return { ok: true, did: "reading aloud" }; } catch (e) { return { ok: false, error: "text-to-speech unavailable: " + e.message }; }
     }
     if (kind === "stopspeak") { try { speechSynthesis.cancel(); } catch {} return { ok: true, did: "stopped" }; }
     if (kind === "darkmode") {

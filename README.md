@@ -214,24 +214,32 @@ Full step-by-step for non-developers: **[TESTERS.md](TESTERS.md)**.
 `server/` runs a local agent loop that relays Claude's tool calls to the extension.
 Requires your own Anthropic API key (pay-per-use, **separate** from any subscription).
 ```bash
-cd server && npm install
+npm install
 $env:ANTHROPIC_API_KEY="sk-ant-..."   # PowerShell
-node server.js
+npm run bridge                         # = node server/server.js
 ```
 When it's running and you pick **🟢 Claude API** mode, the panel uses it. The bridge obeys
 the same policy (can't bypass hard blocks, forbidden rules, or sensitive-site confirmations).
 
 ## Repo layout
-- `manifest.json` — MV3 manifest (identity, icons, UI surfaces, background, content script, permissions)
-- `background.js` — policy engine + tool executor + bridge client
-- `content.js` — page actions + policy enforcement (incl. hard blocks) + confirmation modal
-- `sidepanel.html/js` — the right-side chat: command interpreter, mode toggle, on-device AI, Skills, Macros
-- `options.html/js` — capabilities, hard limits, and forbidden/confirm-site configuration
-- `files.html/js` — local file manager/editor (File System Access API; folder you pick)
-- `popup.html/js` — legacy manual console (kept for reference)
+Written in **TypeScript** (`src/`), compiled to the JS the extension loads (`js/`). The compiled
+`js/` is committed, so you can load-unpacked with **zero build**.
+- `manifest.json` — MV3 manifest; loads the compiled `js/*.js`
+- `src/*.ts` → `js/*.js` — `background` (service worker), `content` (page actions + hard blocks), `sidepanel` (chat/interpreter/AI/Skills/Macros), `options`, `files`, `popup`
+- `*.html` + `css/` — page markup and stylesheets
 - `icons/` — extension icons (16/32/48/128)
-- `server/` — optional Claude API bridge (Node; needs your own API key)
-- `AGENTS.md` — contributor/agent working rules · `llm.txt` — machine-readable project overview
+- `server/` — optional Claude API bridge (`server.ts` → `server.js`, Node + `ws`)
+- `package.json`, `tsconfig.json`, `tsconfig.server.json` — project manifest + TypeScript configs
+- `AGENTS.md` — contributor/agent rules · `llm.txt` — machine-readable overview
+
+## Build / develop
+Only needed if you edit the TypeScript sources (testers loading the release zip don't build anything):
+```bash
+npm install
+npm run build       # src/*.ts -> js/, server/server.ts -> server/server.js
+npm run watch       # incremental rebuild while editing
+npm run typecheck   # tsc --noEmit
+```
 
 ## License
 **MIT** — see [LICENSE](LICENSE). Free for personal *and* commercial/professional use; modify

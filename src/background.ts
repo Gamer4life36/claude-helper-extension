@@ -80,7 +80,7 @@ function searchQueryForbidden(url, policy) {
   return null;
 }
 
-async function execTool(tool, args = {}) {
+async function execTool(tool: any, args: any = {}) {
   const policy = await getPolicy();
   if (!policy.capabilities[tool]) return { ok: false, error: `blocked: capability "${tool}" is disabled in policy` };
 
@@ -154,3 +154,5 @@ function connectBridge() {
 function scheduleReconnect() { clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connectBridge, 3000); }
 connectBridge();
 setInterval(() => { if (bridge && bridge.readyState === 1) bridge.send(JSON.stringify({ ping: 1 })); }, 20000);
+
+export {};

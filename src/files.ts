@@ -1,15 +1,15 @@
 // Claude Companion — local file manager/editor via the File System Access API.
 // Access is limited to a folder the user explicitly picks; edits are written only on Save.
-const $ = (id) => document.getElementById(id);
+const $ = (id: any): any => document.getElementById(id);
 let dirHandle = null, files = [], current = null, dirty = false;
 
 const status = (t) => ($("status").textContent = t);
 function setDirty(d) { dirty = d; $("save").disabled = !current || !d; }
 
 // persist the picked directory handle across sessions (IndexedDB)
-const idb = () => new Promise((res, rej) => { const r = indexedDB.open("cc-files", 1); r.onupgradeneeded = () => r.result.createObjectStore("h"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
-async function put(k, v) { const db = await idb(); return new Promise((res, rej) => { const t = db.transaction("h", "readwrite"); t.objectStore("h").put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
-async function get(k) { const db = await idb(); return new Promise((res) => { const t = db.transaction("h", "readonly"); const q = t.objectStore("h").get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); }
+const idb = (): Promise<any> => new Promise((res, rej) => { const r = indexedDB.open("cc-files", 1); r.onupgradeneeded = () => r.result.createObjectStore("h"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function put(k: any, v: any): Promise<any> { const db = await idb(); return new Promise<void>((res, rej) => { const t = db.transaction("h", "readwrite"); t.objectStore("h").put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
+async function get(k: any): Promise<any> { const db = await idb(); return new Promise((res) => { const t = db.transaction("h", "readonly"); const q = t.objectStore("h").get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); }
 
 async function walk(dir, prefix = "", out = [], depth = 0) {
   if (out.length >= 5000 || depth > 10) return out;
@@ -28,7 +28,7 @@ function renderList() {
   $("list").innerHTML = shown.length
     ? shown.map((f) => `<div class="fi" data-i="${files.indexOf(f)}" title="${f.path.replace(/"/g, "&quot;")}">${f.path}</div>`).join("")
     : '<div class="muted" style="padding:10px">No files match.</div>';
-  $("list").querySelectorAll(".fi").forEach((el) => (el.onclick = () => openFile(+el.dataset.i)));
+  $("list").querySelectorAll(".fi").forEach((el: any) => (el.onclick = () => openFile(+el.dataset.i)));
 }
 
 async function refreshList() {
@@ -46,7 +46,7 @@ async function openFile(i) {
   const f = files[i]; if (!f) return;
   if (dirty && !confirm("Discard unsaved changes?")) return;
   current = f;
-  $("list").querySelectorAll(".fi").forEach((el) => el.classList.toggle("active", +el.dataset.i === i));
+  $("list").querySelectorAll(".fi").forEach((el: any) => el.classList.toggle("active", +el.dataset.i === i));
   try {
     const file = await f.handle.getFile();
     if (file.size > TEXT_MAX) { $("editor").value = ""; $("editor").disabled = true; $("fileinfo").textContent = `${f.path} — ${(file.size / 1048576).toFixed(1)} MB, too large to edit here`; setDirty(false); return; }
@@ -98,3 +98,5 @@ document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.
 window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 if (!window.showDirectoryPicker) { status("This browser doesn't support the File System Access API (needs desktop Chrome/Edge)."); $("pick").disabled = true; }
 else restore();
+
+export {};

@@ -28,8 +28,8 @@
     <div class="ah-t">🟢 Use full Claude (paid API)</div>
     <ol>
       <li>Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → <b>API Keys</b> — add ~$5 credit (this is <i>separate</i> from your Claude subscription).</li>
-      <li>In the extension's <code>server</code> folder, run <code>npm install</code> once.</li>
-      <li>Set the key and start the bridge:<br><code>$env:ANTHROPIC_API_KEY="sk-ant-…"</code><br><code>node server.js</code></li>
+      <li>In the extension folder, run <code>npm install</code> once.</li>
+      <li>Set the key and start the bridge:<br><code>$env:ANTHROPIC_API_KEY="sk-ant-…"</code><br><code>npm run bridge</code></li>
     </ol>
     <div class="ah-n">This panel flips to 🟢 automatically once the bridge connects. Prefer no cost? Stay on 🔵 Free mode.</div>
   </div>
@@ -38,6 +38,6 @@
     <input id="inp" placeholder="e.g. open youtube and search lofi · fill name=John, email=... · build a page for X" autocomplete="off" />
     <button type="submit">Send</button>
   </form>
-  <script src="sidepanel.js"></script>
+  <script type="module" src="js/sidepanel.js"></script>
 </body>
 </html>
