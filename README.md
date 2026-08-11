@@ -222,16 +222,37 @@ npm run bridge                         # = node server/server.js
 When it's running and you pick **🟢 Claude API** mode, the panel uses it. The bridge obeys
 the same policy (can't bypass hard blocks, forbidden rules, or sensitive-site confirmations).
 
-## Repo layout
-Written in **TypeScript** (`src/`), compiled to the JS the extension loads (`js/`). The compiled
-`js/` is committed, so you can load-unpacked with **zero build**.
-- `manifest.json` — MV3 manifest; loads the compiled `js/*.js`
-- `src/*.ts` → `js/*.js` — `background` (service worker), `content` (page actions + hard blocks), `sidepanel` (chat/interpreter/AI/Skills/Macros), `options`, `files`, `popup`
-- `*.html` + `css/` — page markup and stylesheets
-- `icons/` — extension icons (16/32/48/128)
-- `server/` — optional Claude API bridge (`server.ts` → `server.js`, Node + `ws`)
-- `package.json`, `tsconfig.json`, `tsconfig.server.json` — project manifest + TypeScript configs
-- `AGENTS.md` — contributor/agent rules · `llm.txt` — machine-readable overview
+## Project structure
+Written in **TypeScript** (`src/`), bundled by esbuild into the JS the extension loads (`js/`, committed —
+so load-unpacked needs zero build). Config files live at the **root** by convention (Chrome requires
+`manifest.json` there, npm requires `package.json`); everything else is foldered.
+
+```
+claude-companion-extension/
+├─ manifest.json              MV3 manifest (Chrome) — loads js/*.js  [root: Chrome requirement]
+├─ package.json / -lock.json  project, scripts, deps                [root: npm requirement]
+├─ tsconfig.json / .server    TypeScript configs (type-check only)
+├─ eslint.config.js · .prettierrc.json · vitest.config.ts · playwright.config.ts
+├─ build.mjs                  esbuild build (src → js)
+├─ README.md · AGENTS.md · llm.txt · LICENSE
+├─ src/                       TypeScript sources — the real code
+│   ├─ background.ts          service worker: policy engine + tool executor + bridge
+│   ├─ content.ts             injected page script: page actions + hard-block enforcement
+│   ├─ sidepanel.ts           chat UI, command interpreter, modes, AI, Skills, Macros
+│   ├─ options.ts · files.ts · popup.ts
+│   ├─ lib.ts                 pure, unit-tested helpers (resolve, intents, summarize, …)
+│   ├─ browser.ts             webextension-polyfill alias (cross-browser)
+│   └─ globals.d.ts           ambient types (LanguageModel, Summarizer, showDirectoryPicker)
+├─ js/                        esbuild output — what the extension actually loads (committed)
+├─ pages/                     HTML: sidepanel, options, files, popup
+├─ css/                       stylesheets
+├─ icons/                     16 / 32 / 48 / 128
+├─ server/                    optional Claude API bridge (server.ts → server.js, Node + ws)
+├─ scripts/                   build helpers (pack-firefox.mjs)
+├─ test/                      Vitest unit tests        e2e/  Playwright smoke test
+├─ docs/                      TESTERS.md               dist/ generated packages (gitignored)
+└─ .github/                   CI · release · CodeQL · web-ext · dependabot
+```
 
 ## Build / develop
 Only needed if you edit the TypeScript sources (testers loading the release zip don't build anything):
