@@ -9,7 +9,7 @@
     "noEmitOnError": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "newLine": "lf"
+    "noEmit": true
   },
   "include": ["server/**/*.ts"]
 }

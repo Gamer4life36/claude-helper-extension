@@ -98,5 +98,3 @@ document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.
 window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 if (!window.showDirectoryPicker) { status("This browser doesn't support the File System Access API (needs desktop Chrome/Edge)."); $("pick").disabled = true; }
 else restore();
-
-export {};

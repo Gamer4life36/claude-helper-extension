@@ -67,5 +67,3 @@ $("save").onclick = async () => {
 };
 
 load();
-
-export {};

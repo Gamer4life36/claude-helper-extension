@@ -154,5 +154,3 @@ function connectBridge() {
 function scheduleReconnect() { clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connectBridge, 3000); }
 connectBridge();
 setInterval(() => { if (bridge && bridge.readyState === 1) bridge.send(JSON.stringify({ ping: 1 })); }, 20000);
-
-export {};

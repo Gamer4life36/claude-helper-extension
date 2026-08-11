@@ -99,5 +99,3 @@ function refField() { const v = $("ref").value.trim(); return /^\d+$/.test(v) ? 
 $("click").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "click", ...refField() } }));
 $("submit").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "submit", ...refField() } }));
 $("type").onclick = async () => show(await send({ type: "PAGE_ACTION", action: { kind: "type", ...refField(), text: $("text").value } }));
-
-export {};

@@ -236,10 +236,11 @@ Written in **TypeScript** (`src/`), compiled to the JS the extension loads (`js/
 Only needed if you edit the TypeScript sources (testers loading the release zip don't build anything):
 ```bash
 npm install
-npm run build       # src/*.ts -> js/, server/server.ts -> server/server.js
-npm run watch       # incremental rebuild while editing
-npm run typecheck   # tsc --noEmit
+npm run build       # tsc type-check + esbuild bundle -> js/ and server/server.js
+npm run watch       # incremental esbuild while editing
+npm run typecheck   # tsc --noEmit only
 ```
+Sources are TypeScript (`src/`), bundled by **esbuild** into self-contained scripts in `js/` (committed, so load-unpacked needs no build).
 
 ## License
 **MIT** — see [LICENSE](LICENSE). Free for personal *and* commercial/professional use; modify

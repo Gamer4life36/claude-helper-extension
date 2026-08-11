@@ -43,13 +43,14 @@ extension actually loads. HTML/CSS/manifest live at the root.
 4. **Trademark.** Product name is "Claude Companion". Keep the "unofficial / not affiliated with Anthropic" disclaimer. Do not reproduce Anthropic's logo.
 
 ## Build
-- `npm install` once, then **`npm run build`** compiles `src/*.ts` → `js/` and `server/server.ts` → `server/server.js`. `npm run watch` for incremental. `npm run typecheck` runs `tsc --noEmit`.
-- The compiled `js/` **is committed** so testers can load-unpacked (or download the release zip) with **zero build**. After editing any `src/*.ts`, run `npm run build` and commit the regenerated `js/` alongside your source change.
-- TS config is intentionally lenient (`strict: false`); most DOM/message boundaries are typed `any`. Tightening types is welcome but keep the build green (`npm run build` must exit 0).
+- `npm install` once, then **`npm run build`** = `tsc --noEmit` (type-check) **+** `node build.mjs` (esbuild bundles `src/*.ts` → `js/*.js` and `server/server.ts` → `server/server.js`). `npm run watch` for incremental esbuild; `npm run typecheck` for types only; `npm run bundle` to skip the type-check.
+- **tsc only type-checks; esbuild does the emit.** Each entry is bundled as a self-contained **IIFE** (classic script) — so npm libraries can be `import`ed and get bundled in, while the outputs still load as a plain service worker / content script / page script (no ES-module plumbing in the manifest or HTML).
+- The bundled `js/` **is committed** so testers load-unpacked (or download the release zip) with **zero build**. After editing any `src/*.ts`, run `npm run build` and commit the regenerated `js/` alongside your source change.
+- TS config is intentionally lenient (`strict: false`); most DOM/message boundaries are typed `any`. Keep the build green (`npm run build` must exit 0).
 
 ## Conventions
-- **TypeScript**, but keep it dependency-light: the only runtime dep is `ws` (bridge). Do not add a bundler; the build is plain `tsc` emitting per-file ES modules (and a classic IIFE for `content.js`).
-- The five entry files (`background`, `sidepanel`, `options`, `popup`, `files`) end with `export {};` and load as ES modules (manifest `background.type: "module"`, HTML `<script type="module">`). **`content.ts` must stay a classic IIFE with no `export`** — content scripts can't be modules.
+- **TypeScript, bundled by esbuild.** Libraries are welcome (esbuild bundles them into each entry); prefer small, well-maintained ones. Runtime dep so far: `ws` (bridge, kept external).
+- Entries are bundled to **IIFE** and `tsconfig` uses `moduleDetection: force`, so each file has isolated scope without needing `export {}`. `content.ts` stays wrapped in its own `(() => { … })()` IIFE.
 - Match the existing terse, single-line style in `sidepanel.ts` interpreter branches.
 - All browser actions route through `execTool` in `src/background.ts`, which checks `policy.capabilities` then forbidden/sensitive rules. New page actions must be added to: the `capabilities` map + the page-action `case` group in `src/background.ts`, a handler in `src/content.ts`, and (usually) a command pattern in `src/sidepanel.ts`.
 - Policy shape lives in `DEFAULT_POLICY` (`src/background.ts`); `getPolicy()` merges stored overrides on top and re-adds any new default keys, so new fields are safe to add.

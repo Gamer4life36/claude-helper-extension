@@ -502,5 +502,3 @@ document.getElementById("f").addEventListener("submit", async (e) => {
 });
 document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
 addMsg("sys", "🔵 Free mode. Type a command (say “help”). Up top: 🧠 On-device AI for plain-English chat (local, free), or 🟢 Claude API with your key.");
-
-export {};
