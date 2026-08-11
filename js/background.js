@@ -47,7 +47,28 @@
     "camwhore"
   ];
   var DEFAULT_POLICY = {
-    capabilities: { open_tab: true, navigate: true, close_tab: true, list_tabs: true, read_page: true, click: true, type: true, submit: true, scroll: true, reload: true, back: true, forward: true, find_text: true, extract: true, links: true, speak: true, stopspeak: true, darkmode: true, zoom: true, copy: true },
+    capabilities: {
+      open_tab: true,
+      navigate: true,
+      close_tab: true,
+      list_tabs: true,
+      read_page: true,
+      click: true,
+      type: true,
+      submit: true,
+      scroll: true,
+      reload: true,
+      back: true,
+      forward: true,
+      find_text: true,
+      extract: true,
+      links: true,
+      speak: true,
+      stopspeak: true,
+      darkmode: true,
+      zoom: true,
+      copy: true
+    },
     forbiddenDomains: [...ADULT_DOMAINS],
     forbiddenKeywords: [...ADULT_KEYWORDS],
     confirmSites: [
@@ -76,10 +97,92 @@
     ].map((host) => ({ host, mode: "ask" })),
     confirmKeywords: ["login", "signin", "sign-in", "logon", "auth", "account", "bank", "billing", "checkout", "payment", "pay", "wallet", "transfer", "invoice", "card"],
     // HARD BLOCKS (never run, not even with confirm): purchases, legal signing, sensitive data entry
-    purchaseKeywords: ["buy now", "buy it now", "place order", "place your order", "complete purchase", "complete order", "confirm purchase", "confirm order", "confirm and pay", "confirm & pay", "pay now", "pay $", "submit payment", "proceed to payment", "make payment", "subscribe and pay", "authorize payment", "purchase now", "pay and confirm", "order now", "complete payment"],
-    legalDomains: ["docusign.com", "docusign.net", "hellosign.com", "dropboxsign.com", "adobesign.com", "echosign.com", "na1.echosign.com", "signnow.com", "pandadoc.com", "signeasy.com", "esignlive.com"],
-    legalKeywords: ["e-sign", "esign", "electronically sign", "sign document", "sign & submit", "agree and sign", "legally binding", "accept and sign", "sign here", "apply for a", "submit application", "power of attorney", "notariz", "notaris", "adopt signature", "apply my signature"],
-    sensitiveFieldPatterns: ["ssn", "social security", "credit card", "debit card", "card number", "cardnumber", "cc-number", "cc-num", "cvv", "cvc", "security code", "card verification", "routing number", "account number", "bank account", "iban", "sort code", "passport", "driver's license", "drivers license", "license number", "tax id", "taxpayer", "tin", "ein", "national id", "government id", "date of birth", "dob", "mother's maiden"],
+    purchaseKeywords: [
+      "buy now",
+      "buy it now",
+      "place order",
+      "place your order",
+      "complete purchase",
+      "complete order",
+      "confirm purchase",
+      "confirm order",
+      "confirm and pay",
+      "confirm & pay",
+      "pay now",
+      "pay $",
+      "submit payment",
+      "proceed to payment",
+      "make payment",
+      "subscribe and pay",
+      "authorize payment",
+      "purchase now",
+      "pay and confirm",
+      "order now",
+      "complete payment"
+    ],
+    legalDomains: [
+      "docusign.com",
+      "docusign.net",
+      "hellosign.com",
+      "dropboxsign.com",
+      "adobesign.com",
+      "echosign.com",
+      "na1.echosign.com",
+      "signnow.com",
+      "pandadoc.com",
+      "signeasy.com",
+      "esignlive.com"
+    ],
+    legalKeywords: [
+      "e-sign",
+      "esign",
+      "electronically sign",
+      "sign document",
+      "sign & submit",
+      "agree and sign",
+      "legally binding",
+      "accept and sign",
+      "sign here",
+      "apply for a",
+      "submit application",
+      "power of attorney",
+      "notariz",
+      "notaris",
+      "adopt signature",
+      "apply my signature"
+    ],
+    sensitiveFieldPatterns: [
+      "ssn",
+      "social security",
+      "credit card",
+      "debit card",
+      "card number",
+      "cardnumber",
+      "cc-number",
+      "cc-num",
+      "cvv",
+      "cvc",
+      "security code",
+      "card verification",
+      "routing number",
+      "account number",
+      "bank account",
+      "iban",
+      "sort code",
+      "passport",
+      "driver's license",
+      "drivers license",
+      "license number",
+      "tax id",
+      "taxpayer",
+      "tin",
+      "ein",
+      "national id",
+      "government id",
+      "date of birth",
+      "dob",
+      "mother's maiden"
+    ],
     rules: { forbidPasswordTyping: true, forbidSubmitOnSensitive: false, confirmAllSubmits: true, allowBridge: true, forbidPurchases: true, forbidLegalSigning: true, forbidSensitiveData: true }
   };
   var BRIDGE_URL = "ws://localhost:8787";
@@ -214,7 +317,16 @@
         }
         const why = forbiddenReason(hostOf(tab.url), policy);
         if (why) return { ok: false, forbidden: true, error: "blocked: " + why };
-        const action = { kind: tool === "read_page" ? "read" : tool, ref: args.ref, selector: args.selector, text: args.text, direction: args.direction, amount: args.amount, to: args.to, dir: args.dir };
+        const action = {
+          kind: tool === "read_page" ? "read" : tool,
+          ref: args.ref,
+          selector: args.selector,
+          text: args.text,
+          direction: args.direction,
+          amount: args.amount,
+          to: args.to,
+          dir: args.dir
+        };
         return await sendToTab(tabId, { type: "PAGE_ACTION", action, policy });
       }
       default:
@@ -257,7 +369,13 @@
     return t.id;
   }
   function sendToTab(tabId, payload) {
-    return new Promise((resolve) => chrome.tabs.sendMessage(tabId, payload, (resp) => resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message + " (open a normal http/https page and reload it)" } : resp)));
+    return new Promise(
+      (resolve) => chrome.tabs.sendMessage(
+        tabId,
+        payload,
+        (resp) => resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message + " (open a normal http/https page and reload it)" } : resp)
+      )
+    );
   }
   var bridge = null;
   var reconnectTimer = null;

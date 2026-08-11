@@ -8,7 +8,13 @@
     "bundle": "node build.mjs",
     "build": "npm run typecheck && node build.mjs",
     "watch": "node build.mjs --watch",
-    "bridge": "node server/server.js"
+    "bridge": "node server/server.js",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -19,11 +25,19 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@types/chrome": "^0.0.268",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.11.0",
     "@types/turndown": "^5.0.6",
     "esbuild": "^0.28.2",
-    "typescript": "^5.4.0"
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10"
   }
 }

@@ -1,11 +1,30 @@
 const $ = (id: any): any => document.getElementById(id);
 const send = (msg: any): Promise<any> => new Promise((res) => chrome.runtime.sendMessage(msg, res));
-const CAP_LIST = ["open_tab", "navigate", "close_tab", "list_tabs", "read_page", "click", "type", "submit", "scroll", "reload", "back", "forward", "find_text", "extract", "links", "speak", "darkmode", "zoom", "copy"];
+const CAP_LIST = [
+  "open_tab",
+  "navigate",
+  "close_tab",
+  "list_tabs",
+  "read_page",
+  "click",
+  "type",
+  "submit",
+  "scroll",
+  "reload",
+  "back",
+  "forward",
+  "find_text",
+  "extract",
+  "links",
+  "speak",
+  "darkmode",
+  "zoom",
+  "copy",
+];
 let policy;
 
 function renderCaps() {
-  $("caps").innerHTML = CAP_LIST.map((c) =>
-    `<label class="cap"><input type="checkbox" data-cap="${c}" ${policy.capabilities[c] ? "checked" : ""}/> ${c}</label>`).join("");
+  $("caps").innerHTML = CAP_LIST.map((c) => `<label class="cap"><input type="checkbox" data-cap="${c}" ${policy.capabilities[c] ? "checked" : ""}/> ${c}</label>`).join("");
 }
 
 function siteRow(host = "", mode = "ask") {
@@ -55,11 +74,27 @@ $("save").onclick = async () => {
   policy.rules.forbidSubmitOnSensitive = $("forbidSubmitOnSensitive").checked;
   policy.rules.allowBridge = !$("allowBridgeInv").checked;
   policy.rules.confirmAllSubmits = $("confirmAllSubmits").checked;
-  const clean = (v) => v.split("\n").map((s) => s.trim().replace(/^www\./, "").toLowerCase()).filter(Boolean);
+  const clean = (v) =>
+    v
+      .split("\n")
+      .map((s) =>
+        s
+          .trim()
+          .replace(/^www\./, "")
+          .toLowerCase(),
+      )
+      .filter(Boolean);
   policy.forbiddenKeywords = clean($("forbiddenKeywords").value);
   policy.forbiddenDomains = clean($("forbiddenDomains").value);
   policy.confirmSites = [...document.querySelectorAll("#confirmRows .site")]
-    .map((r: any) => ({ host: r.querySelector(".host").value.trim().replace(/^www\./, "").toLowerCase(), mode: r.querySelector(".mode").value }))
+    .map((r: any) => ({
+      host: r
+        .querySelector(".host")
+        .value.trim()
+        .replace(/^www\./, "")
+        .toLowerCase(),
+      mode: r.querySelector(".mode").value,
+    }))
     .filter((s) => s.host);
   await send({ type: "SET_POLICY", policy });
   $("saved").textContent = "Saved ✓";

@@ -24,6 +24,15 @@ jobs:
       - name: Build (src/*.ts -> js/, server/server.ts -> server/server.js)
         run: npm run build
 
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Format check (Prettier)
+        run: npm run format:check
+
+      - name: Unit tests (Vitest)
+        run: npm test
+
       - name: Syntax-check compiled output
         run: |
           set -e

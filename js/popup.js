@@ -69,9 +69,13 @@
     if (s && !looksLikeUrl(s)) {
       matches = SITES.filter(([n, d]) => n.toLowerCase().includes(s) || d.includes(s)).slice(0, 7);
     }
-    const rows = matches.map(([n, d, f], i) => `<div class="sg${i === active ? " active" : ""}" data-url="https://${d}"><span class="fav">${f}</span><span class="name">${n}</span><span class="dom">${d}</span></div>`);
+    const rows = matches.map(
+      ([n, d, f], i) => `<div class="sg${i === active ? " active" : ""}" data-url="https://${d}"><span class="fav">${f}</span><span class="name">${n}</span><span class="dom">${d}</span></div>`
+    );
     if (s && !matches.some(([n]) => n.toLowerCase() === s)) {
-      rows.push(`<div class="sg${active === matches.length ? " active" : ""}" data-url="${looksLikeUrl(s) ? toUrl(s) : googleSearch(q)}"><span class="fav">${looksLikeUrl(s) ? "\u{1F310}" : "\u{1F50E}"}</span><span class="name">${looksLikeUrl(s) ? "Go to " + q : "Search Google for \u201C" + q + "\u201D"}</span></div>`);
+      rows.push(
+        `<div class="sg${active === matches.length ? " active" : ""}" data-url="${looksLikeUrl(s) ? toUrl(s) : googleSearch(q)}"><span class="fav">${looksLikeUrl(s) ? "\u{1F310}" : "\u{1F50E}"}</span><span class="name">${looksLikeUrl(s) ? "Go to " + q : "Search Google for \u201C" + q + "\u201D"}</span></div>`
+      );
     }
     box.innerHTML = rows.join("");
     box.style.display = rows.length ? "block" : "none";
@@ -127,10 +131,13 @@
   $("tabs").onclick = async () => show(await send({ type: "LIST_TABS" }));
   $("read").onclick = async () => {
     const r = await send({ type: "PAGE_ACTION", action: { kind: "read" } });
-    if (r.ok) show(`URL: ${r.page.url}
+    if (r.ok)
+      show(
+        `URL: ${r.page.url}
 Sensitive: ${r.page.sensitive} \xB7 Forbidden: ${r.page.forbidden}
 
-` + r.page.elements.map((x) => `#${x.ref} <${x.tag}${x.type ? " " + x.type : ""}> ${x.text || x.placeholder || x.name || x.href}`.trim()).join("\n"));
+` + r.page.elements.map((x) => `#${x.ref} <${x.tag}${x.type ? " " + x.type : ""}> ${x.text || x.placeholder || x.name || x.href}`.trim()).join("\n")
+      );
     else show(r);
   };
   function refField() {

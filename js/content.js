@@ -3817,8 +3817,7 @@
       if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form");
       if (!el) return { ok: false, error: "element not found \u2014 run read_page first to get refs." };
       const isPw = (el.getAttribute("type") || "").toLowerCase() === "password";
-      if (kind === "type" && isPw && policy?.rules?.forbidPasswordTyping)
-        return { ok: false, forbidden: true, error: "forbidden by policy: typing into password fields is disabled" };
+      if (kind === "type" && isPw && policy?.rules?.forbidPasswordTyping) return { ok: false, forbidden: true, error: "forbidden by policy: typing into password fields is disabled" };
       if (kind === "submit" && policy?.rules?.forbidSubmitOnSensitive && sensitivity(kind, el).mode)
         return { ok: false, forbidden: true, error: "forbidden by policy: submitting on sensitive pages is disabled" };
       const btnLabel = (el.innerText || el.value || el.getAttribute("aria-label") || "").toLowerCase();

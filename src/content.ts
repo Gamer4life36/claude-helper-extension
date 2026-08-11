@@ -18,11 +18,18 @@ import DOMPurify from "dompurify";
   const elByRef = (ref) => document.querySelector(`[data-claude-ref="${CSS.escape(String(ref))}"]`);
   function getLabel(el: any) {
     try {
-      if (el.id) { const l: any = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (l && l.innerText.trim()) return l.innerText.trim().slice(0, 60); }
-      const p = el.closest("label"); if (p && p.innerText.trim()) return p.innerText.trim().slice(0, 60);
-      const a = el.getAttribute("aria-label"); if (a) return a.slice(0, 60);
+      if (el.id) {
+        const l: any = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+        if (l && l.innerText.trim()) return l.innerText.trim().slice(0, 60);
+      }
+      const p = el.closest("label");
+      if (p && p.innerText.trim()) return p.innerText.trim().slice(0, 60);
+      const a = el.getAttribute("aria-label");
+      if (a) return a.slice(0, 60);
       return "";
-    } catch { return ""; }
+    } catch {
+      return "";
+    }
   }
   const host = () => location.hostname.replace(/^www\./, "").toLowerCase();
   const suffixMatch = (list) => (list || []).some((d) => host() === d || host().endsWith("." + d));
@@ -31,15 +38,23 @@ import DOMPurify from "dompurify";
   function readPage() {
     const els = tagInteractive();
     return {
-      url: location.href, title: document.title, sensitive: !!sensitivity().mode, forbidden: isForbidden(),
+      url: location.href,
+      title: document.title,
+      sensitive: !!sensitivity().mode,
+      forbidden: isForbidden(),
       hasPasswordField: !!document.querySelector("input[type=password]"),
       elements: els.slice(0, 400).map((el: any) => ({
-        ref: el.getAttribute("data-claude-ref"), tag: el.tagName.toLowerCase(), type: el.getAttribute("type") || "",
-        name: el.getAttribute("name") || "", placeholder: el.getAttribute("placeholder") || "", label: getLabel(el),
+        ref: el.getAttribute("data-claude-ref"),
+        tag: el.tagName.toLowerCase(),
+        type: el.getAttribute("type") || "",
+        name: el.getAttribute("name") || "",
+        placeholder: el.getAttribute("placeholder") || "",
+        label: getLabel(el),
         text: (el.innerText || el.value || el.getAttribute("aria-label") || "").trim().slice(0, 80),
-        href: el.getAttribute("href") || "", isPassword: (el.getAttribute("type") || "").toLowerCase() === "password"
+        href: el.getAttribute("href") || "",
+        isPassword: (el.getAttribute("type") || "").toLowerCase() === "password",
       })),
-      text: (document.body?.innerText || "").slice(0, 15000)
+      text: (document.body?.innerText || "").slice(0, 15000),
     };
   }
 
@@ -54,7 +69,7 @@ import DOMPurify from "dompurify";
     const u = location.href.toLowerCase();
     const kw = (policy?.confirmKeywords || []).some((k) => u.includes(k));
     const pw = !!document.querySelector("input[type=password]") || (el?.getAttribute?.("type") || "").toLowerCase() === "password";
-    const PAY = ["pay","submit","login","log in","sign in","signin","checkout","confirm","transfer","send money","place order","buy now","purchase","authorize"];
+    const PAY = ["pay", "submit", "login", "log in", "sign in", "signin", "checkout", "confirm", "transfer", "send money", "place order", "buy now", "purchase", "authorize"];
     const label = (el?.innerText || el?.value || "").toLowerCase();
     const payBtn = (kind === "click" || kind === "submit") && PAY.some((w) => label.includes(w));
     const subGate = kind === "submit" && policy?.rules?.confirmAllSubmits;
@@ -75,8 +90,14 @@ import DOMPurify from "dompurify";
           <button id="cl-ok" style="padding:8px 14px;border-radius:8px;border:0;background:#b3261e;color:#fff;cursor:pointer">Approve once</button>
         </div></div>`;
       document.documentElement.appendChild(wrap);
-      (wrap.querySelector("#cl-ok") as any).onclick = () => { wrap.remove(); resolve(true); };
-      (wrap.querySelector("#cl-deny") as any).onclick = () => { wrap.remove(); resolve(false); };
+      (wrap.querySelector("#cl-ok") as any).onclick = () => {
+        wrap.remove();
+        resolve(true);
+      };
+      (wrap.querySelector("#cl-deny") as any).onclick = () => {
+        wrap.remove();
+        resolve(false);
+      };
     });
   }
 
@@ -91,11 +112,16 @@ import DOMPurify from "dompurify";
       return { ok: true, did: "scrolled " + (action.to || action.direction || "down") };
     }
     if (kind === "find_text") {
-      const q = (action.text || "").toLowerCase(); if (!q) return { ok: false, error: "no text given" };
+      const q = (action.text || "").toLowerCase();
+      if (!q) return { ok: false, error: "no text given" };
       const el: any = [...document.querySelectorAll("body *")].find((e: any) => e.children.length === 0 && (e.innerText || "").toLowerCase().includes(q));
       if (!el) return { ok: false, error: `"${action.text}" not found on this page` };
       el.scrollIntoView({ block: "center", behavior: "smooth" });
-      const old = el.style.backgroundColor; el.style.backgroundColor = "#ffe066"; setTimeout(() => { el.style.backgroundColor = old; }, 2500);
+      const old = el.style.backgroundColor;
+      el.style.backgroundColor = "#ffe066";
+      setTimeout(() => {
+        el.style.backgroundColor = old;
+      }, 2500);
       return { ok: true, did: "found", text: (el.innerText || "").trim().slice(0, 120) };
     }
     if (kind === "extract") {
@@ -109,7 +135,7 @@ import DOMPurify from "dompurify";
             title: article.title || document.title,
             url: location.href,
             text: (article.textContent || "").trim().slice(0, 60000),
-            html: DOMPurify.sanitize(article.content || "")
+            html: DOMPurify.sanitize(article.content || ""),
           };
         }
       } catch {}
@@ -117,50 +143,96 @@ import DOMPurify from "dompurify";
       const pick = document.querySelector("article, main, [role=main]") || document.body;
       const clone: any = pick.cloneNode(true);
       clone.querySelectorAll("script,style,nav,header,footer,aside,form,noscript,iframe,svg,button").forEach((e) => e.remove());
-      const txt = (clone.innerText || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+      const txt = (clone.innerText || "")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
       return { ok: true, title: document.title, url: location.href, text: txt.slice(0, 60000), html: "" };
     }
     if (kind === "links") {
-      const seen = new Set(), links = [];
-      for (const a of document.querySelectorAll("a[href]") as any) { const href = a.href; if (!/^https?:/.test(href) || seen.has(href)) continue; seen.add(href); links.push({ text: (a.innerText || "").trim().slice(0, 70), href }); if (links.length >= 300) break; }
+      const seen = new Set(),
+        links = [];
+      for (const a of document.querySelectorAll("a[href]") as any) {
+        const href = a.href;
+        if (!/^https?:/.test(href) || seen.has(href)) continue;
+        seen.add(href);
+        links.push({ text: (a.innerText || "").trim().slice(0, 70), href });
+        if (links.length >= 300) break;
+      }
       return { ok: true, links };
     }
     if (kind === "speak") {
-      try { speechSynthesis.cancel(); const src = action.text || ((document.querySelector("article, main, [role=main]") || document.body) as any).innerText || ""; const u = new SpeechSynthesisUtterance(src.slice(0, 8000)); u.rate = 1; speechSynthesis.speak(u); return { ok: true, did: "reading aloud" }; } catch (e) { return { ok: false, error: "text-to-speech unavailable: " + e.message }; }
+      try {
+        speechSynthesis.cancel();
+        const src = action.text || ((document.querySelector("article, main, [role=main]") || document.body) as any).innerText || "";
+        const u = new SpeechSynthesisUtterance(src.slice(0, 8000));
+        u.rate = 1;
+        speechSynthesis.speak(u);
+        return { ok: true, did: "reading aloud" };
+      } catch (e) {
+        return { ok: false, error: "text-to-speech unavailable: " + e.message };
+      }
     }
-    if (kind === "stopspeak") { try { speechSynthesis.cancel(); } catch {} return { ok: true, did: "stopped" }; }
+    if (kind === "stopspeak") {
+      try {
+        speechSynthesis.cancel();
+      } catch {}
+      return { ok: true, did: "stopped" };
+    }
     if (kind === "darkmode") {
-      let s = document.getElementById("__cl_dark"); if (s) { s.remove(); return { ok: true, did: "dark mode off" }; }
-      s = document.createElement("style"); s.id = "__cl_dark";
-      s.textContent = "html{filter:invert(1) hue-rotate(180deg)!important;background:#111!important}img,video,picture,canvas,svg,[style*='background-image']{filter:invert(1) hue-rotate(180deg)!important}";
-      document.documentElement.appendChild(s); return { ok: true, did: "dark mode on" };
+      let s = document.getElementById("__cl_dark");
+      if (s) {
+        s.remove();
+        return { ok: true, did: "dark mode off" };
+      }
+      s = document.createElement("style");
+      s.id = "__cl_dark";
+      s.textContent =
+        "html{filter:invert(1) hue-rotate(180deg)!important;background:#111!important}img,video,picture,canvas,svg,[style*='background-image']{filter:invert(1) hue-rotate(180deg)!important}";
+      document.documentElement.appendChild(s);
+      return { ok: true, did: "dark mode on" };
     }
     if (kind === "zoom") {
-      const b = document.body; let z = parseFloat(b.style.zoom || "1") || 1;
-      if (action.dir === "in") z += 0.1; else if (action.dir === "out") z = Math.max(0.3, z - 0.1); else z = 1;
-      b.style.zoom = String(z); return { ok: true, did: "zoom " + Math.round(z * 100) + "%" };
+      const b = document.body;
+      let z = parseFloat(b.style.zoom || "1") || 1;
+      if (action.dir === "in") z += 0.1;
+      else if (action.dir === "out") z = Math.max(0.3, z - 0.1);
+      else z = 1;
+      b.style.zoom = String(z);
+      return { ok: true, did: "zoom " + Math.round(z * 100) + "%" };
     }
     if (kind === "copy") {
       const val = action.text ?? location.href;
-      try { await navigator.clipboard.writeText(val); return { ok: true, did: "copied" }; }
-      catch { const ta = document.createElement("textarea"); ta.value = val; document.body.appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok ? { ok: true, did: "copied" } : { ok: false, error: "clipboard blocked on this page" }; }
+      try {
+        await navigator.clipboard.writeText(val);
+        return { ok: true, did: "copied" };
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = val;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        return ok ? { ok: true, did: "copied" } : { ok: false, error: "clipboard blocked on this page" };
+      }
     }
 
-    let el = ref != null ? elByRef(ref) : (selector ? document.querySelector(selector) : null);
+    let el = ref != null ? elByRef(ref) : selector ? document.querySelector(selector) : null;
     if (!el && kind === "submit") el = document.querySelector("form button[type=submit], form [type=submit], form"); // submit: fall back to the page's form
     if (!el) return { ok: false, error: "element not found — run read_page first to get refs." };
     const isPw = (el.getAttribute("type") || "").toLowerCase() === "password";
 
     // hard limits
-    if (kind === "type" && isPw && policy?.rules?.forbidPasswordTyping)
-      return { ok: false, forbidden: true, error: "forbidden by policy: typing into password fields is disabled" };
+    if (kind === "type" && isPw && policy?.rules?.forbidPasswordTyping) return { ok: false, forbidden: true, error: "forbidden by policy: typing into password fields is disabled" };
     if (kind === "submit" && policy?.rules?.forbidSubmitOnSensitive && sensitivity(kind, el).mode)
       return { ok: false, forbidden: true, error: "forbidden by policy: submitting on sensitive pages is disabled" };
 
     // ── HARD BLOCKS (never run, even with confirm): sensitive data, purchases, legal signing ──
     const btnLabel = (el.innerText || el.value || el.getAttribute("aria-label") || "").toLowerCase();
     if (kind === "type" && policy?.rules?.forbidSensitiveData) {
-      const meta = [el.getAttribute("name"), el.getAttribute("id"), el.getAttribute("placeholder"), el.getAttribute("aria-label"), getLabel(el), el.getAttribute("autocomplete")].join(" ").toLowerCase();
+      const meta = [el.getAttribute("name"), el.getAttribute("id"), el.getAttribute("placeholder"), el.getAttribute("aria-label"), getLabel(el), el.getAttribute("autocomplete")]
+        .join(" ")
+        .toLowerCase();
       const hit = (policy.sensitiveFieldPatterns || []).find((p) => meta.includes(p));
       if (hit) return { ok: false, forbidden: true, error: `HARD BLOCK: I won't enter sensitive data (field looks like "${hit}"). Please type this yourself.` };
     }
@@ -186,19 +258,40 @@ import DOMPurify from "dompurify";
     // s.mode === "allow" or null → proceed
 
     switch (kind) {
-      case "click": el.scrollIntoView({ block: "center" }); el.click(); return { ok: true, did: "click", ref };
+      case "click":
+        el.scrollIntoView({ block: "center" });
+        el.click();
+        return { ok: true, did: "click", ref };
       case "type":
         el.focus();
-        if ("value" in el) { el.value = text ?? ""; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); }
-        else if (el.isContentEditable) el.textContent = text ?? "";
+        if ("value" in el) {
+          el.value = text ?? "";
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        } else if (el.isContentEditable) el.textContent = text ?? "";
         return { ok: true, did: "type", ref };
-      case "submit": { const form = el.closest("form") || document.querySelector("form"); if (form) { form.requestSubmit ? form.requestSubmit() : form.submit(); return { ok: true, did: "submit" }; } el.click(); return { ok: true, did: "submit(click)" }; }
-      default: return { ok: false, error: "unknown action: " + kind };
+      case "submit": {
+        const form = el.closest("form") || document.querySelector("form");
+        if (form) {
+          form.requestSubmit ? form.requestSubmit() : form.submit();
+          return { ok: true, did: "submit" };
+        }
+        el.click();
+        return { ok: true, did: "submit(click)" };
+      }
+      default:
+        return { ok: false, error: "unknown action: " + kind };
     }
   }
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg?.type === "PAGE_ACTION") { policy = msg.policy || {}; perform(msg.action).then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e?.message || e) })); return true; }
+    if (msg?.type === "PAGE_ACTION") {
+      policy = msg.policy || {};
+      perform(msg.action)
+        .then(sendResponse)
+        .catch((e) => sendResponse({ ok: false, error: String(e?.message || e) }));
+      return true;
+    }
   });
   console.log("[Claude Companion] policy content script active on", location.href);
 })();
