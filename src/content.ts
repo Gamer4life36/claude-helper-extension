@@ -6,6 +6,7 @@
 
 import { Readability } from "@mozilla/readability";
 import DOMPurify from "dompurify";
+import browser from "./browser";
 
 (() => {
   let policy = null;
@@ -284,7 +285,7 @@ import DOMPurify from "dompurify";
     }
   }
 
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  browser.runtime.onMessage.addListener((msg: any, sender: any, sendResponse: any) => {
     if (msg?.type === "PAGE_ACTION") {
       policy = msg.policy || {};
       perform(msg.action)

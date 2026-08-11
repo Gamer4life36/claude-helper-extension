@@ -1,4 +1,1024 @@
 (() => {
+  var __create = Object.create;
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __commonJS = (cb, mod) => function __require() {
+    try {
+      return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    } catch (e) {
+      throw mod = 0, e;
+    }
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
+
+  // node_modules/webextension-polyfill/dist/browser-polyfill.js
+  var require_browser_polyfill = __commonJS({
+    "node_modules/webextension-polyfill/dist/browser-polyfill.js"(exports, module) {
+      (function(global, factory) {
+        if (typeof define === "function" && define.amd) {
+          define("webextension-polyfill", ["module"], factory);
+        } else if (typeof exports !== "undefined") {
+          factory(module);
+        } else {
+          var mod = {
+            exports: {}
+          };
+          factory(mod);
+          global.browser = mod.exports;
+        }
+      })(typeof globalThis !== "undefined" ? globalThis : typeof self !== "undefined" ? self : exports, function(module2) {
+        "use strict";
+        if (!(globalThis.chrome && globalThis.chrome.runtime && globalThis.chrome.runtime.id)) {
+          throw new Error("This script should only be loaded in a browser extension.");
+        }
+        if (!(globalThis.browser && globalThis.browser.runtime && globalThis.browser.runtime.id)) {
+          const CHROME_SEND_MESSAGE_CALLBACK_NO_RESPONSE_MESSAGE = "The message port closed before a response was received.";
+          const wrapAPIs = (extensionAPIs) => {
+            const apiMetadata = {
+              "alarms": {
+                "clear": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "clearAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "get": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "bookmarks": {
+                "create": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "get": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getChildren": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getRecent": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getSubTree": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getTree": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "move": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                },
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeTree": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "search": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "update": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                }
+              },
+              "browserAction": {
+                "disable": {
+                  "minArgs": 0,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "enable": {
+                  "minArgs": 0,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "getBadgeBackgroundColor": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getBadgeText": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getPopup": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getTitle": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "openPopup": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "setBadgeBackgroundColor": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "setBadgeText": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "setIcon": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "setPopup": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "setTitle": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                }
+              },
+              "browsingData": {
+                "remove": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                },
+                "removeCache": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeCookies": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeDownloads": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeFormData": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeHistory": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeLocalStorage": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removePasswords": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removePluginData": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "settings": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "commands": {
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "contextMenus": {
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "update": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                }
+              },
+              "cookies": {
+                "get": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getAll": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getAllCookieStores": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "set": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "devtools": {
+                "inspectedWindow": {
+                  "eval": {
+                    "minArgs": 1,
+                    "maxArgs": 2,
+                    "singleCallbackArg": false
+                  }
+                },
+                "panels": {
+                  "create": {
+                    "minArgs": 3,
+                    "maxArgs": 3,
+                    "singleCallbackArg": true
+                  },
+                  "elements": {
+                    "createSidebarPane": {
+                      "minArgs": 1,
+                      "maxArgs": 1
+                    }
+                  }
+                }
+              },
+              "downloads": {
+                "cancel": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "download": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "erase": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getFileIcon": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "open": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "pause": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeFile": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "resume": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "search": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "show": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                }
+              },
+              "extension": {
+                "isAllowedFileSchemeAccess": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "isAllowedIncognitoAccess": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "history": {
+                "addUrl": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "deleteAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "deleteRange": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "deleteUrl": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getVisits": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "search": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "i18n": {
+                "detectLanguage": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getAcceptLanguages": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "identity": {
+                "launchWebAuthFlow": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "idle": {
+                "queryState": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "management": {
+                "get": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "getSelf": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "setEnabled": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                },
+                "uninstallSelf": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                }
+              },
+              "notifications": {
+                "clear": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "create": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "getPermissionLevel": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "update": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                }
+              },
+              "pageAction": {
+                "getPopup": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getTitle": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "hide": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "setIcon": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "setPopup": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "setTitle": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                },
+                "show": {
+                  "minArgs": 1,
+                  "maxArgs": 1,
+                  "fallbackToNoCallback": true
+                }
+              },
+              "permissions": {
+                "contains": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "request": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "runtime": {
+                "getBackgroundPage": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "getPlatformInfo": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "openOptionsPage": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "requestUpdateCheck": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "sendMessage": {
+                  "minArgs": 1,
+                  "maxArgs": 3
+                },
+                "sendNativeMessage": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                },
+                "setUninstallURL": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "sessions": {
+                "getDevices": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "getRecentlyClosed": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "restore": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                }
+              },
+              "storage": {
+                "local": {
+                  "clear": {
+                    "minArgs": 0,
+                    "maxArgs": 0
+                  },
+                  "get": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  },
+                  "getBytesInUse": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  },
+                  "remove": {
+                    "minArgs": 1,
+                    "maxArgs": 1
+                  },
+                  "set": {
+                    "minArgs": 1,
+                    "maxArgs": 1
+                  }
+                },
+                "managed": {
+                  "get": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  },
+                  "getBytesInUse": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  }
+                },
+                "sync": {
+                  "clear": {
+                    "minArgs": 0,
+                    "maxArgs": 0
+                  },
+                  "get": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  },
+                  "getBytesInUse": {
+                    "minArgs": 0,
+                    "maxArgs": 1
+                  },
+                  "remove": {
+                    "minArgs": 1,
+                    "maxArgs": 1
+                  },
+                  "set": {
+                    "minArgs": 1,
+                    "maxArgs": 1
+                  }
+                }
+              },
+              "tabs": {
+                "captureVisibleTab": {
+                  "minArgs": 0,
+                  "maxArgs": 2
+                },
+                "create": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "detectLanguage": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "discard": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "duplicate": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "executeScript": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "get": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getCurrent": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                },
+                "getZoom": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "getZoomSettings": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "goBack": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "goForward": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "highlight": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "insertCSS": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "move": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                },
+                "query": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "reload": {
+                  "minArgs": 0,
+                  "maxArgs": 2
+                },
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "removeCSS": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "sendMessage": {
+                  "minArgs": 2,
+                  "maxArgs": 3
+                },
+                "setZoom": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "setZoomSettings": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "update": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                }
+              },
+              "topSites": {
+                "get": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "webNavigation": {
+                "getAllFrames": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "getFrame": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                }
+              },
+              "webRequest": {
+                "handlerBehaviorChanged": {
+                  "minArgs": 0,
+                  "maxArgs": 0
+                }
+              },
+              "windows": {
+                "create": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "get": {
+                  "minArgs": 1,
+                  "maxArgs": 2
+                },
+                "getAll": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "getCurrent": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "getLastFocused": {
+                  "minArgs": 0,
+                  "maxArgs": 1
+                },
+                "remove": {
+                  "minArgs": 1,
+                  "maxArgs": 1
+                },
+                "update": {
+                  "minArgs": 2,
+                  "maxArgs": 2
+                }
+              }
+            };
+            if (Object.keys(apiMetadata).length === 0) {
+              throw new Error("api-metadata.json has not been included in browser-polyfill");
+            }
+            class DefaultWeakMap extends WeakMap {
+              constructor(createItem, items = void 0) {
+                super(items);
+                this.createItem = createItem;
+              }
+              get(key) {
+                if (!this.has(key)) {
+                  this.set(key, this.createItem(key));
+                }
+                return super.get(key);
+              }
+            }
+            const isThenable = (value) => {
+              return value && typeof value === "object" && typeof value.then === "function";
+            };
+            const makeCallback = (promise, metadata) => {
+              return (...callbackArgs) => {
+                if (extensionAPIs.runtime.lastError) {
+                  promise.reject(new Error(extensionAPIs.runtime.lastError.message));
+                } else if (metadata.singleCallbackArg || callbackArgs.length <= 1 && metadata.singleCallbackArg !== false) {
+                  promise.resolve(callbackArgs[0]);
+                } else {
+                  promise.resolve(callbackArgs);
+                }
+              };
+            };
+            const pluralizeArguments = (numArgs) => numArgs == 1 ? "argument" : "arguments";
+            const wrapAsyncFunction = (name, metadata) => {
+              return function asyncFunctionWrapper(target, ...args) {
+                if (args.length < metadata.minArgs) {
+                  throw new Error(`Expected at least ${metadata.minArgs} ${pluralizeArguments(metadata.minArgs)} for ${name}(), got ${args.length}`);
+                }
+                if (args.length > metadata.maxArgs) {
+                  throw new Error(`Expected at most ${metadata.maxArgs} ${pluralizeArguments(metadata.maxArgs)} for ${name}(), got ${args.length}`);
+                }
+                return new Promise((resolve2, reject) => {
+                  if (metadata.fallbackToNoCallback) {
+                    try {
+                      target[name](...args, makeCallback({
+                        resolve: resolve2,
+                        reject
+                      }, metadata));
+                    } catch (cbError) {
+                      console.warn(`${name} API method doesn't seem to support the callback parameter, falling back to call it without a callback: `, cbError);
+                      target[name](...args);
+                      metadata.fallbackToNoCallback = false;
+                      metadata.noCallback = true;
+                      resolve2();
+                    }
+                  } else if (metadata.noCallback) {
+                    target[name](...args);
+                    resolve2();
+                  } else {
+                    target[name](...args, makeCallback({
+                      resolve: resolve2,
+                      reject
+                    }, metadata));
+                  }
+                });
+              };
+            };
+            const wrapMethod = (target, method, wrapper) => {
+              return new Proxy(method, {
+                apply(targetMethod, thisObj, args) {
+                  return wrapper.call(thisObj, target, ...args);
+                }
+              });
+            };
+            let hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
+            const wrapObject = (target, wrappers = {}, metadata = {}) => {
+              let cache = /* @__PURE__ */ Object.create(null);
+              let handlers = {
+                has(proxyTarget2, prop) {
+                  return prop in target || prop in cache;
+                },
+                get(proxyTarget2, prop, receiver) {
+                  if (prop in cache) {
+                    return cache[prop];
+                  }
+                  if (!(prop in target)) {
+                    return void 0;
+                  }
+                  let value = target[prop];
+                  if (typeof value === "function") {
+                    if (typeof wrappers[prop] === "function") {
+                      value = wrapMethod(target, target[prop], wrappers[prop]);
+                    } else if (hasOwnProperty(metadata, prop)) {
+                      let wrapper = wrapAsyncFunction(prop, metadata[prop]);
+                      value = wrapMethod(target, target[prop], wrapper);
+                    } else {
+                      value = value.bind(target);
+                    }
+                  } else if (typeof value === "object" && value !== null && (hasOwnProperty(wrappers, prop) || hasOwnProperty(metadata, prop))) {
+                    value = wrapObject(value, wrappers[prop], metadata[prop]);
+                  } else if (hasOwnProperty(metadata, "*")) {
+                    value = wrapObject(value, wrappers[prop], metadata["*"]);
+                  } else {
+                    Object.defineProperty(cache, prop, {
+                      configurable: true,
+                      enumerable: true,
+                      get() {
+                        return target[prop];
+                      },
+                      set(value2) {
+                        target[prop] = value2;
+                      }
+                    });
+                    return value;
+                  }
+                  cache[prop] = value;
+                  return value;
+                },
+                set(proxyTarget2, prop, value, receiver) {
+                  if (prop in cache) {
+                    cache[prop] = value;
+                  } else {
+                    target[prop] = value;
+                  }
+                  return true;
+                },
+                defineProperty(proxyTarget2, prop, desc) {
+                  return Reflect.defineProperty(cache, prop, desc);
+                },
+                deleteProperty(proxyTarget2, prop) {
+                  return Reflect.deleteProperty(cache, prop);
+                }
+              };
+              let proxyTarget = Object.create(target);
+              return new Proxy(proxyTarget, handlers);
+            };
+            const wrapEvent = (wrapperMap) => ({
+              addListener(target, listener, ...args) {
+                target.addListener(wrapperMap.get(listener), ...args);
+              },
+              hasListener(target, listener) {
+                return target.hasListener(wrapperMap.get(listener));
+              },
+              removeListener(target, listener) {
+                target.removeListener(wrapperMap.get(listener));
+              }
+            });
+            const onRequestFinishedWrappers = new DefaultWeakMap((listener) => {
+              if (typeof listener !== "function") {
+                return listener;
+              }
+              return function onRequestFinished(req) {
+                const wrappedReq = wrapObject(req, {}, {
+                  getContent: {
+                    minArgs: 0,
+                    maxArgs: 0
+                  }
+                });
+                listener(wrappedReq);
+              };
+            });
+            const onMessageWrappers = new DefaultWeakMap((listener) => {
+              if (typeof listener !== "function") {
+                return listener;
+              }
+              return function onMessage(message, sender, sendResponse) {
+                let didCallSendResponse = false;
+                let wrappedSendResponse;
+                let sendResponsePromise = new Promise((resolve2) => {
+                  wrappedSendResponse = function(response) {
+                    didCallSendResponse = true;
+                    resolve2(response);
+                  };
+                });
+                let result;
+                try {
+                  result = listener(message, sender, wrappedSendResponse);
+                } catch (err) {
+                  result = Promise.reject(err);
+                }
+                const isResultThenable = result !== true && isThenable(result);
+                if (result !== true && !isResultThenable && !didCallSendResponse) {
+                  return false;
+                }
+                const sendPromisedResult = (promise) => {
+                  promise.then((msg) => {
+                    sendResponse(msg);
+                  }, (error) => {
+                    let message2;
+                    if (error && (error instanceof Error || typeof error.message === "string")) {
+                      message2 = error.message;
+                    } else {
+                      message2 = "An unexpected error occurred";
+                    }
+                    sendResponse({
+                      __mozWebExtensionPolyfillReject__: true,
+                      message: message2
+                    });
+                  }).catch((err) => {
+                    console.error("Failed to send onMessage rejected reply", err);
+                  });
+                };
+                if (isResultThenable) {
+                  sendPromisedResult(result);
+                } else {
+                  sendPromisedResult(sendResponsePromise);
+                }
+                return true;
+              };
+            });
+            const wrappedSendMessageCallback = ({
+              reject,
+              resolve: resolve2
+            }, reply) => {
+              if (extensionAPIs.runtime.lastError) {
+                if (extensionAPIs.runtime.lastError.message === CHROME_SEND_MESSAGE_CALLBACK_NO_RESPONSE_MESSAGE) {
+                  resolve2();
+                } else {
+                  reject(new Error(extensionAPIs.runtime.lastError.message));
+                }
+              } else if (reply && reply.__mozWebExtensionPolyfillReject__) {
+                reject(new Error(reply.message));
+              } else {
+                resolve2(reply);
+              }
+            };
+            const wrappedSendMessage = (name, metadata, apiNamespaceObj, ...args) => {
+              if (args.length < metadata.minArgs) {
+                throw new Error(`Expected at least ${metadata.minArgs} ${pluralizeArguments(metadata.minArgs)} for ${name}(), got ${args.length}`);
+              }
+              if (args.length > metadata.maxArgs) {
+                throw new Error(`Expected at most ${metadata.maxArgs} ${pluralizeArguments(metadata.maxArgs)} for ${name}(), got ${args.length}`);
+              }
+              return new Promise((resolve2, reject) => {
+                const wrappedCb = wrappedSendMessageCallback.bind(null, {
+                  resolve: resolve2,
+                  reject
+                });
+                args.push(wrappedCb);
+                apiNamespaceObj.sendMessage(...args);
+              });
+            };
+            const staticWrappers = {
+              devtools: {
+                network: {
+                  onRequestFinished: wrapEvent(onRequestFinishedWrappers)
+                }
+              },
+              runtime: {
+                onMessage: wrapEvent(onMessageWrappers),
+                onMessageExternal: wrapEvent(onMessageWrappers),
+                sendMessage: wrappedSendMessage.bind(null, "sendMessage", {
+                  minArgs: 1,
+                  maxArgs: 3
+                })
+              },
+              tabs: {
+                sendMessage: wrappedSendMessage.bind(null, "sendMessage", {
+                  minArgs: 2,
+                  maxArgs: 3
+                })
+              }
+            };
+            const settingMetadata = {
+              clear: {
+                minArgs: 1,
+                maxArgs: 1
+              },
+              get: {
+                minArgs: 1,
+                maxArgs: 1
+              },
+              set: {
+                minArgs: 1,
+                maxArgs: 1
+              }
+            };
+            apiMetadata.privacy = {
+              network: {
+                "*": settingMetadata
+              },
+              services: {
+                "*": settingMetadata
+              },
+              websites: {
+                "*": settingMetadata
+              }
+            };
+            return wrapObject(extensionAPIs, staticWrappers, apiMetadata);
+          };
+          module2.exports = wrapAPIs(chrome);
+        } else {
+          module2.exports = globalThis.browser;
+        }
+      });
+    }
+  });
+
   // node_modules/fuse.js/dist/fuse.mjs
   function isArray(value) {
     return !Array.isArray ? getTag(value) === "[object Array]" : Array.isArray(value);
@@ -2169,23 +3189,23 @@
     }
   };
   function process(parentNode) {
-    var self = this;
+    var self2 = this;
     return reduce.call(parentNode.childNodes, function(output, node) {
-      node = new Node(node, self.options);
+      node = new Node(node, self2.options);
       var replacement = "";
       if (node.nodeType === 3) {
-        replacement = node.isCode ? node.nodeValue : self.escape(node.nodeValue);
+        replacement = node.isCode ? node.nodeValue : self2.escape(node.nodeValue);
       } else if (node.nodeType === 1) {
-        replacement = replacementForNode.call(self, node);
+        replacement = replacementForNode.call(self2, node);
       }
       return join(output, replacement);
     }, "");
   }
   function postProcess(output) {
-    var self = this;
+    var self2 = this;
     this.rules.forEach(function(rule) {
       if (typeof rule.append === "function") {
-        output = join(output, rule.append(self.options));
+        output = join(output, rule.append(self2.options));
       }
     });
     return output.replace(/^[\t\r\n]+/, "").replace(/[\t\r\n\s]+$/, "");
@@ -5237,12 +6257,16 @@
     return scored.sort((a, b) => b.sc - a.sc).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.s);
   }
 
+  // src/browser.ts
+  var import_webextension_polyfill = __toESM(require_browser_polyfill());
+  var browser_default = import_webextension_polyfill.default;
+
   // src/sidepanel.ts
   var logEl = document.getElementById("log");
   var modeEl = document.getElementById("mode");
   var inp = document.getElementById("inp");
   var BRIDGE = "http://localhost:8787";
-  var exec = (tool, args = {}) => new Promise((res) => chrome.runtime.sendMessage({ type: "EXEC", tool, args }, res));
+  var exec = (tool, args = {}) => browser_default.runtime.sendMessage({ type: "EXEC", tool, args });
   function addMsg(role, text, cls = "") {
     const d = document.createElement("div");
     d.className = "msg " + (role === "me" ? "me" : role === "sys" ? "sys" : "ai") + (cls ? " " + cls : "");
@@ -5344,11 +6368,11 @@
     ebay: "https://signin.ebay.com/",
     nexus: "https://users.nexusmods.com/auth/sign_in"
   };
-  var getMacros = async () => (await chrome.storage.local.get("macros")).macros || {};
-  var setMacros = async (mac) => chrome.storage.local.set({ macros: mac });
-  var getSkills = async () => (await chrome.storage.local.get("skills")).skills || {};
-  var setSkills = async (s) => chrome.storage.local.set({ skills: s });
-  chrome.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }) => {
+  var getMacros = async () => (await browser_default.storage.local.get("macros")).macros || {};
+  var setMacros = async (mac) => browser_default.storage.local.set({ macros: mac });
+  var getSkills = async () => (await browser_default.storage.local.get("skills")).skills || {};
+  var setSkills = async (s) => browser_default.storage.local.set({ skills: s });
+  browser_default.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }) => {
     if (skillsSeeded) return;
     const s = await getSkills();
     if (!s.gamepost)
@@ -5357,7 +6381,7 @@
         steps: 'open steam and search $input then ask Write a short, punchy Facebook post announcing my Steam game "$input". Include [STORE LINK] and [RELEASE DATE] placeholders, a one-line hook, 2-3 relevant hashtags, and keep it under 80 words.'
       };
     await setSkills(s);
-    await chrome.storage.local.set({ skillsSeeded: true });
+    await browser_default.storage.local.set({ skillsSeeded: true });
   });
   async function runSkill(name, input, depth = 0) {
     const skills = await getSkills();
@@ -5589,7 +6613,7 @@ Your skills: ${Object.keys(skills).join(", ")}` };
       return { text: "Reloaded." };
     }
     if (/^close( this)?( tab)?$/.test(l)) {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await browser_default.tabs.query({ active: true, currentWindow: true });
       await exec("close_tab", { tabId: tab.id });
       return { text: "Closed tab." };
     }
@@ -5602,7 +6626,7 @@ Your skills: ${Object.keys(skills).join(", ")}` };
       return { text: r2.ok ? r2.tabs.map((x) => `\u2022 ${x.title || x.url}`).join("\n") : "\u{1F6AB} " + r2.error, els: true };
     }
     if (/^(files|file manager|open files|edit files|browse files|open a file)$/i.test(l)) {
-      chrome.tabs.create({ url: chrome.runtime.getURL("pages/files.html") });
+      browser_default.tabs.create({ url: browser_default.runtime.getURL("pages/files.html") });
       return { text: "\u{1F4C1} Opened the file manager. Pick a folder to browse, read, and edit files on this computer \u2014 changes save only when you click Save." };
     }
     if (/^(scroll to |go to )?(the )?bottom$|^scroll bottom$/.test(l)) {
@@ -5638,7 +6662,7 @@ Your skills: ${Object.keys(skills).join(", ")}` };
       return { text: r2.ok ? "Clicked Sign in." : "\u{1F6AB} " + r2.error, blocked: !r2.ok };
     }
     if (/^translate (this|the) page$|^translate page$/i.test(l)) {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await browser_default.tabs.query({ active: true, currentWindow: true });
       const u = tab?.url || "";
       if (!/^https?:/.test(u)) return { text: "Open a normal web page first, then say \u201Ctranslate this page\u201D." };
       await exec("open_tab", { url: "https://translate.google.com/translate?sl=auto&tl=en&u=" + enc(u) });
@@ -5747,7 +6771,7 @@ ${words.toLocaleString()} words \xB7 ~${mins} min read` };
       const url2 = LOGIN_URLS[site];
       if (url2) {
         await exec("open_tab", { url: url2 });
-        const prof = (await chrome.storage.local.get("profile")).profile || {};
+        const prof = (await browser_default.storage.local.get("profile")).profile || {};
         return { text: `Opened ${site} login.${prof.email ? ` Say \u201Cfill my info\u201D to prefill your email \u2014 passwords are never entered.` : ""}` };
       }
       const r2 = await exec("open_tab", { url: resolve(m[1]) });
@@ -5757,7 +6781,7 @@ ${words.toLocaleString()} words \xB7 ~${mins} min read` };
       const net = { fb: "facebook" }[m[2].toLowerCase()] || m[2].toLowerCase();
       let url2 = m[1] || m[3];
       if (!url2) {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const [tab] = await browser_default.tabs.query({ active: true, currentWindow: true });
         url2 = tab?.url || "";
       }
       if (!/^https?:/.test(url2)) return { text: `Give a link, e.g. \u201Cshare to ${net} https://store.steampowered.com/app/\u2026\u201D.` };
@@ -5780,13 +6804,13 @@ ${words.toLocaleString()} words \xB7 ~${mins} min read` };
     if ((m = t.match(/^(?:set|save|remember|update)\s+my\s+(?:info|profile|details|contact(?:\s+info)?)?\s*(?:to|:|=|with|as)?\s*(.+)$/i)) && /[:=]/.test(m[1])) {
       const pairs = parsePairs(m[1]);
       if (!pairs.length) return { text: 'Say e.g. "set my info name=Mike, email=me@x.com, phone=555-1234".' };
-      const prof = (await chrome.storage.local.get("profile")).profile || {};
+      const prof = (await browser_default.storage.local.get("profile")).profile || {};
       for (const { k, v } of pairs) prof[normKey(k)] = v;
-      await chrome.storage.local.set({ profile: prof });
+      await browser_default.storage.local.set({ profile: prof });
       return { text: "Saved your profile: " + Object.keys(prof).join(", ") + ".\nNow say \u201Cfill my info\u201D on any form. (Passwords & cards are never stored.)" };
     }
     if (/^(?:fill|autofill|complete)\s+(?:this\s+)?(?:form\s+)?(?:with\s+)?my\s+(?:info|profile|details|contact(?:\s+info)?)$|^autofill$/i.test(l)) {
-      const prof = (await chrome.storage.local.get("profile")).profile || {};
+      const prof = (await browser_default.storage.local.get("profile")).profile || {};
       if (!Object.keys(prof).length) return { text: 'No saved profile yet. First: "set my info name=Mike, email=me@x.com, phone=...".' };
       const done = await autofillProfile(prof);
       return { text: "Autofilled from your profile:\n" + done.join("\n"), els: true };
@@ -5880,14 +6904,14 @@ ${list}`, els: true };
   var bridgeUp = false;
   var nanoState = "unknown";
   var mode = "free";
-  chrome.storage.local.get("mode").then((v) => {
+  browser_default.storage.local.get("mode").then((v) => {
     if (["free", "nano", "api"].includes(v.mode)) mode = v.mode;
     updateMode();
     refreshNano();
   });
   function setMode(mNew) {
     mode = mNew;
-    chrome.storage.local.set({ mode: mNew });
+    browser_default.storage.local.set({ mode: mNew });
     updateMode();
   }
   async function refreshNano() {
@@ -6000,6 +7024,6 @@ ${list}`, els: true };
       if (r.blocked) break;
     }
   });
-  document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
+  document.getElementById("policy").onclick = () => browser_default.runtime.openOptionsPage();
   addMsg("sys", "\u{1F535} Free mode. Type a command (say \u201Chelp\u201D). Up top: \u{1F9E0} On-device AI for plain-English chat (local, free), or \u{1F7E2} Claude API with your key.");
 })();

@@ -1,8 +1,10 @@
+import browser from "./browser";
+
 const out = document.getElementById("out");
 const statusEl = document.getElementById("status");
 const $ = (id: any): any => document.getElementById(id);
 const show = (v: any) => (out.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2));
-const send = (msg: any): Promise<any> => new Promise((res) => chrome.runtime.sendMessage(msg, res));
+const send = (msg: any): Promise<any> => browser.runtime.sendMessage(msg);
 
 // ── Known sites for autocomplete (name → domain) ───────────────────────────
 const SITES = [
@@ -121,7 +123,7 @@ document.addEventListener("click", (e) => {
 
 // ── existing controls ──────────────────────────────────────────────────────
 async function refreshStatus() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
   const resp = await send({ type: "GET_POLICY" });
   const policy = (resp && resp.policy) || {};
@@ -139,7 +141,7 @@ async function refreshStatus() {
     (forbidden ? `<span class="warn">forbidden → blocked</span>` : sensitive ? `<span class="warn">sensitive → confirm</span>` : `<span class="safe">normal</span>`);
 }
 refreshStatus();
-$("policy").onclick = () => chrome.runtime.openOptionsPage();
+$("policy").onclick = () => browser.runtime.openOptionsPage();
 $("tabs").onclick = async () => show(await send({ type: "LIST_TABS" }));
 $("read").onclick = async () => {
   const r = await send({ type: "PAGE_ACTION", action: { kind: "read" } });

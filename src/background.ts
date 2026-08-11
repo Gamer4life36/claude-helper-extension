@@ -7,6 +7,8 @@
 //   confirmKeywords   — URL words that make a page sensitive (default: ask)
 //   rules             — hard limits (never type passwords, etc.)
 
+import browser from "./browser";
+
 const ADULT_DOMAINS = [
   "pornhub.com",
   "xvideos.com",
@@ -196,7 +198,7 @@ const DEFAULT_POLICY = {
 const BRIDGE_URL = "ws://localhost:8787";
 
 async function getPolicy() {
-  const { policy } = await chrome.storage.local.get("policy");
+  const { policy } = (await browser.storage.local.get("policy")) as any;
   const p = policy || {};
   const merged = {
     ...DEFAULT_POLICY,
@@ -214,16 +216,18 @@ async function getPolicy() {
   return merged;
 }
 async function seedPolicy() {
-  await chrome.storage.local.set({ policy: await getPolicy() });
+  await browser.storage.local.set({ policy: await getPolicy() });
 }
-chrome.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener(() => {
   seedPolicy();
   try {
+    /* chrome-only: sidePanel has no polyfill/browser.* equivalent */
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
   } catch {}
 });
 seedPolicy(); // also on service-worker start, to fix already-installed copies
 try {
+  /* chrome-only: sidePanel has no polyfill/browser.* equivalent */
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 } catch {}
 
@@ -266,29 +270,29 @@ async function execTool(tool: any, args: any = {}) {
   }
   switch (tool) {
     case "open_tab": {
-      const t = await chrome.tabs.create({ url: args.url, active: args.active ?? true });
+      const t = await browser.tabs.create({ url: args.url, active: args.active ?? true });
       return { ok: true, tabId: t.id, url: args.url };
     }
     case "navigate": {
-      await chrome.tabs.update(args.tabId ?? (await activeTabId()), { url: args.url });
+      await browser.tabs.update(args.tabId ?? (await activeTabId()), { url: args.url });
       return { ok: true };
     }
     case "close_tab":
-      await chrome.tabs.remove(args.tabId);
+      await browser.tabs.remove(args.tabId);
       return { ok: true };
     case "list_tabs": {
-      const tabs = await chrome.tabs.query({});
+      const tabs = await browser.tabs.query({});
       return { ok: true, tabs: tabs.map((t) => ({ id: t.id, url: t.url, title: t.title, active: t.active })) };
     }
     case "reload": {
       const id = args.tabId ?? (await activeTabId());
-      await chrome.tabs.reload(id);
+      await browser.tabs.reload(id);
       return { ok: true };
     }
     case "back": {
       const id = args.tabId ?? (await activeTabId());
       try {
-        await chrome.tabs.goBack(id);
+        await browser.tabs.goBack(id);
       } catch {
         return { ok: false, error: "can't go back" };
       }
@@ -297,7 +301,7 @@ async function execTool(tool: any, args: any = {}) {
     case "forward": {
       const id = args.tabId ?? (await activeTabId());
       try {
-        await chrome.tabs.goForward(id);
+        await browser.tabs.goForward(id);
       } catch {
         return { ok: false, error: "can't go forward" };
       }
@@ -323,7 +327,7 @@ async function execTool(tool: any, args: any = {}) {
         return { ok: false, error: "no active tab — open a normal web page first" };
       }
       try {
-        tab = await chrome.tabs.get(tabId);
+        tab = await browser.tabs.get(tabId);
       } catch {
         return { ok: false, error: "couldn't access the active tab (open a normal http/https page)" };
       }
@@ -346,14 +350,14 @@ async function execTool(tool: any, args: any = {}) {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((msg: any, sender: any, sendResponse: any) => {
   (async () => {
     try {
       switch (msg?.type) {
         case "GET_POLICY":
           return sendResponse({ ok: true, policy: await getPolicy(), defaults: DEFAULT_POLICY });
         case "SET_POLICY":
-          await chrome.storage.local.set({ policy: msg.policy });
+          await browser.storage.local.set({ policy: msg.policy });
           return sendResponse({ ok: true });
         case "EXEC":
           return sendResponse(await execTool(msg.tool, msg.args || {}));
@@ -378,16 +382,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 async function activeTabId() {
-  const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [t] = await browser.tabs.query({ active: true, currentWindow: true });
   if (!t) throw new Error("no active tab");
   return t.id;
 }
 function sendToTab(tabId, payload) {
-  return new Promise((resolve) =>
-    chrome.tabs.sendMessage(tabId, payload, (resp) =>
-      resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message + " (open a normal http/https page and reload it)" } : resp),
-    ),
-  );
+  // The polyfill rejects (instead of setting runtime.lastError) when no content
+  // script receives the message — catch it to keep the original error shape.
+  return browser.tabs.sendMessage(tabId, payload).catch((e: any) => ({ ok: false, error: (e?.message || String(e)) + " (open a normal http/https page and reload it)" }));
 }
 
 // ── Bridge (respects the same policy via execTool) ─────────────────────────

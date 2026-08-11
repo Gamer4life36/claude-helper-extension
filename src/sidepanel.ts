@@ -1,12 +1,13 @@
 import Fuse from "fuse.js";
 import TurndownService from "turndown";
 import { SITES, SEARCH_URLS, SHARE_URLS, siteSearchUrl, resolve, FIELD_SYNS, normKey, parsePairs, enc, intentUrl, composeEmailUrl, summarize } from "./lib";
+import browser from "./browser";
 
 const logEl = document.getElementById("log");
 const modeEl = document.getElementById("mode");
 const inp: any = document.getElementById("inp");
 const BRIDGE = "http://localhost:8787";
-const exec = (tool: any, args: any = {}): Promise<any> => new Promise((res) => chrome.runtime.sendMessage({ type: "EXEC", tool, args }, res));
+const exec = (tool: any, args: any = {}): Promise<any> => browser.runtime.sendMessage({ type: "EXEC", tool, args });
 
 function addMsg(role, text, cls = "") {
   const d = document.createElement("div");
@@ -130,18 +131,18 @@ const LOGIN_URLS = {
   nexus: "https://users.nexusmods.com/auth/sign_in",
 };
 // ── macros / saved workflows (professional repeatable automation) ───────────
-const getMacros = async () => (await chrome.storage.local.get("macros")).macros || {};
-const setMacros = async (mac) => chrome.storage.local.set({ macros: mac });
+const getMacros = async () => ((await browser.storage.local.get("macros")) as any).macros || {};
+const setMacros = async (mac) => browser.storage.local.set({ macros: mac });
 
 // ── Skills (agent-skills standard: name + description + steps) ──────────────
 // Inspired by Anthropic Agent Skills & the open agent-skills standard: a skill
 // is a named capability with a description (what + WHEN to trigger) and a body
 // of steps. Explicit invoke: "use <name> <input>". Implicit: "do <request>"
 // lets on-device AI pick the best skill by its description.
-const getSkills = async () => (await chrome.storage.local.get("skills")).skills || {};
-const setSkills = async (s) => chrome.storage.local.set({ skills: s });
+const getSkills = async () => ((await browser.storage.local.get("skills")) as any).skills || {};
+const setSkills = async (s) => browser.storage.local.set({ skills: s });
 // seed a starter skill once, so Skills work out of the box
-chrome.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }) => {
+browser.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }: any) => {
   if (skillsSeeded) return;
   const s = await getSkills();
   if (!s.gamepost)
@@ -151,7 +152,7 @@ chrome.storage.local.get("skillsSeeded").then(async ({ skillsSeeded }) => {
         'open steam and search $input then ask Write a short, punchy Facebook post announcing my Steam game "$input". Include [STORE LINK] and [RELEASE DATE] placeholders, a one-line hook, 2-3 relevant hashtags, and keep it under 80 words.',
     };
   await setSkills(s);
-  await chrome.storage.local.set({ skillsSeeded: true });
+  await browser.storage.local.set({ skillsSeeded: true });
 });
 async function runSkill(name, input, depth = 0) {
   const skills = await getSkills();
@@ -402,7 +403,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
     return { text: "Reloaded." };
   }
   if (/^close( this)?( tab)?$/.test(l)) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     await exec("close_tab", { tabId: tab.id });
     return { text: "Closed tab." };
   }
@@ -415,7 +416,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
     return { text: r.ok ? r.tabs.map((x) => `• ${x.title || x.url}`).join("\n") : "🚫 " + r.error, els: true };
   }
   if (/^(files|file manager|open files|edit files|browse files|open a file)$/i.test(l)) {
-    chrome.tabs.create({ url: chrome.runtime.getURL("pages/files.html") });
+    browser.tabs.create({ url: browser.runtime.getURL("pages/files.html") });
     return { text: "📁 Opened the file manager. Pick a folder to browse, read, and edit files on this computer — changes save only when you click Save." };
   }
   if (/^(scroll to |go to )?(the )?bottom$|^scroll bottom$/.test(l)) {
@@ -457,7 +458,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
 
   // translate the current page
   if (/^translate (this|the) page$|^translate page$/i.test(l)) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     const u = tab?.url || "";
     if (!/^https?:/.test(u)) return { text: "Open a normal web page first, then say “translate this page”." };
     await exec("open_tab", { url: "https://translate.google.com/translate?sl=auto&tl=en&u=" + enc(u) });
@@ -571,7 +572,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
     const url = LOGIN_URLS[site];
     if (url) {
       await exec("open_tab", { url });
-      const prof = (await chrome.storage.local.get("profile")).profile || {};
+      const prof = ((await browser.storage.local.get("profile")) as any).profile || {};
       return { text: `Opened ${site} login.${prof.email ? ` Say “fill my info” to prefill your email — passwords are never entered.` : ""}` };
     }
     const r = await exec("open_tab", { url: resolve(m[1]) });
@@ -583,7 +584,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
     const net = { fb: "facebook" }[m[2].toLowerCase()] || m[2].toLowerCase();
     let url = m[1] || m[3];
     if (!url) {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       url = tab?.url || "";
     }
     if (!/^https?:/.test(url)) return { text: `Give a link, e.g. “share to ${net} https://store.steampowered.com/app/…”.` };
@@ -613,14 +614,14 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
   if ((m = t.match(/^(?:set|save|remember|update)\s+my\s+(?:info|profile|details|contact(?:\s+info)?)?\s*(?:to|:|=|with|as)?\s*(.+)$/i)) && /[:=]/.test(m[1])) {
     const pairs = parsePairs(m[1]);
     if (!pairs.length) return { text: 'Say e.g. "set my info name=Mike, email=me@x.com, phone=555-1234".' };
-    const prof = (await chrome.storage.local.get("profile")).profile || {};
+    const prof = ((await browser.storage.local.get("profile")) as any).profile || {};
     for (const { k, v } of pairs) prof[normKey(k)] = v;
-    await chrome.storage.local.set({ profile: prof });
+    await browser.storage.local.set({ profile: prof });
     return { text: "Saved your profile: " + Object.keys(prof).join(", ") + ".\nNow say “fill my info” on any form. (Passwords & cards are never stored.)" };
   }
   // autofill from saved profile
   if (/^(?:fill|autofill|complete)\s+(?:this\s+)?(?:form\s+)?(?:with\s+)?my\s+(?:info|profile|details|contact(?:\s+info)?)$|^autofill$/i.test(l)) {
-    const prof = (await chrome.storage.local.get("profile")).profile || {};
+    const prof = ((await browser.storage.local.get("profile")) as any).profile || {};
     if (!Object.keys(prof).length) return { text: 'No saved profile yet. First: "set my info name=Mike, email=me@x.com, phone=...".' };
     const done = await autofillProfile(prof);
     return { text: "Autofilled from your profile:\n" + done.join("\n"), els: true };
@@ -746,14 +747,14 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
 let bridgeUp = false,
   nanoState = "unknown",
   mode = "free";
-chrome.storage.local.get("mode").then((v) => {
+browser.storage.local.get("mode").then((v: any) => {
   if (["free", "nano", "api"].includes(v.mode)) mode = v.mode;
   updateMode();
   refreshNano();
 });
 function setMode(mNew) {
   mode = mNew;
-  chrome.storage.local.set({ mode: mNew });
+  browser.storage.local.set({ mode: mNew });
   updateMode();
 }
 async function refreshNano() {
@@ -877,5 +878,5 @@ document.getElementById("f").addEventListener("submit", async (e) => {
     if (r.blocked) break;
   }
 });
-document.getElementById("policy").onclick = () => chrome.runtime.openOptionsPage();
+document.getElementById("policy").onclick = () => browser.runtime.openOptionsPage();
 addMsg("sys", "🔵 Free mode. Type a command (say “help”). Up top: 🧠 On-device AI for plain-English chat (local, free), or 🟢 Claude API with your key.");

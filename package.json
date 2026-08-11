@@ -8,6 +8,8 @@
     "bundle": "node build.mjs",
     "build": "npm run typecheck && node build.mjs",
     "watch": "node build.mjs --watch",
+    "pack:firefox": "node scripts/pack-firefox.mjs",
+    "lint:ext": "web-ext lint --source-dir dist/firefox --self-hosted",
     "bridge": "node server/server.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
@@ -22,6 +24,7 @@
     "dompurify": "^3.4.13",
     "fuse.js": "^7.5.0",
     "turndown": "^7.2.4",
+    "webextension-polyfill": "^0.12.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.11.0",
     "@types/turndown": "^5.0.6",
+    "@types/webextension-polyfill": "^0.12.5",
     "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
@@ -38,6 +42,7 @@
     "prettier": "^3.9.6",
     "typescript": "^5.4.0",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "web-ext": "^10.6.0"
   }
 }

@@ -1,5 +1,7 @@
+import browser from "./browser";
+
 const $ = (id: any): any => document.getElementById(id);
-const send = (msg: any): Promise<any> => new Promise((res) => chrome.runtime.sendMessage(msg, res));
+const send = (msg: any): Promise<any> => browser.runtime.sendMessage(msg);
 const CAP_LIST = [
   "open_tab",
   "navigate",

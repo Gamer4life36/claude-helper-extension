@@ -1,0 +1,33 @@
+name: WebExt (Firefox)
+
+# Separate from ci.yml on purpose: this builds the Firefox package from the
+# shared TypeScript sources and runs Mozilla's web-ext linter against it. The
+# root Chrome extension is validated by ci.yml; this workflow only covers the
+# generated dist/firefox/ output.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (src/*.ts -> js/)
+        run: npm run build
+
+      - name: Pack Firefox package (dist/firefox/)
+        run: npm run pack:firefox
+
+      - name: web-ext lint (Mozilla)
+        run: npm run lint:ext
