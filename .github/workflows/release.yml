@@ -46,7 +46,7 @@ jobs:
           ( cd dist/firefox && zip -r ../../claude-companion-firefox.zip . )
 
       - name: Attach zips to the release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             claude-companion-extension.zip
