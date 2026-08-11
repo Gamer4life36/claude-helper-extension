@@ -1,6 +1,6 @@
 {
   "name": "claude-companion",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "description": "Claude Companion — an unofficial, configurable Chrome extension (MV3). TypeScript sources in src/ are bundled by esbuild into the js/ the extension loads; the optional bridge lives in server/.",
   "scripts": {

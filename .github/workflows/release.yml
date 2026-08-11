@@ -35,13 +35,20 @@ jobs:
       - name: Build extension
         run: npm run build
 
-      - name: Package zip
+      - name: Package Chrome/Edge zip
         run: |
           zip -r claude-companion-extension.zip . \
-            -x ".git/*" ".github/*" "node_modules/*" "*.zip"
+            -x ".git/*" ".github/*" "node_modules/*" "dist/*" "*.zip"
 
-      - name: Attach zip to the release
+      - name: Package Firefox zip
+        run: |
+          npm run pack:firefox
+          ( cd dist/firefox && zip -r ../../claude-companion-firefox.zip . )
+
+      - name: Attach zips to the release
         uses: softprops/action-gh-release@v2
         with:
-          files: claude-companion-extension.zip
+          files: |
+            claude-companion-extension.zip
+            claude-companion-firefox.zip
           fail_on_unmatched_files: true

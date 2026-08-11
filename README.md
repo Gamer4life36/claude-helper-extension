@@ -154,10 +154,11 @@ PAGE      read                                 list clickable/typeable items wit
           type me@x.com into email             type into a field (matched by label/name)
           submit · press enter · scroll to bottom · back · forward · reload
           find "returns" on the page           scroll to + highlight text on the page
-READING   summarize                            extractive summary of the article (no AI)
-          reader view                          clean, distraction-free version of the page
+READING   summarize                            summary of the article (Readability + on-device AI when on)
+          reader view                          clean, distraction-free version (Readability + DOMPurify)
           read aloud / stop reading            local text-to-speech (Web Speech API)
           translate this page                  opens a translated view
+          copy as markdown                     the article converted to Markdown (Turndown)
           word count · list links · extract emails · extract prices · copy url · copy page text
 VIEW      dark mode · zoom in · zoom out · reset zoom     injected on the current page
 SHOP      add to cart · buy now · checkout     acts on the current page (sensitive steps ask first)
@@ -241,6 +242,18 @@ npm run watch       # incremental esbuild while editing
 npm run typecheck   # tsc --noEmit only
 ```
 Sources are TypeScript (`src/`), bundled by **esbuild** into self-contained scripts in `js/` (committed, so load-unpacked needs no build).
+
+## Cross-browser
+Runs on **Chrome** and **Edge** (Chromium) straight from the repo root. A **Firefox** build is produced by
+`npm run pack:firefox` → `dist/firefox/` (uses `sidebar_action` in place of Chrome's side panel) and is
+lint-clean under Mozilla's `web-ext`. One source targets all three via **webextension-polyfill**.
+
+## Under the hood
+TypeScript + esbuild, powered by well-tested open source: **[@mozilla/readability](https://github.com/mozilla/readability)** (reader/summarize),
+**[DOMPurify](https://github.com/cure53/DOMPurify)** (sanitizing), **[Fuse.js](https://github.com/krisk/fuse)** (fuzzy matching),
+**[chrono-node](https://github.com/wanasit/chrono)** (natural dates), **[Turndown](https://github.com/mixmark-io/turndown)** (HTML→Markdown),
+**[webextension-polyfill](https://github.com/mozilla/webextension-polyfill)** (cross-browser). Quality gates in CI: **ESLint + typescript-eslint**,
+**Prettier**, **Vitest** unit tests, and Mozilla **web-ext** lint — plus a **Playwright** e2e smoke test.
 
 ## License
 **MIT** — see [LICENSE](LICENSE). Free for personal *and* commercial/professional use; modify
