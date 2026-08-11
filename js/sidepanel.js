@@ -441,7 +441,7 @@ async function interpret(text, depth = 0, opts = {}) {
         return { text: r.ok ? r.tabs.map((x) => `• ${x.title || x.url}`).join("\n") : "🚫 " + r.error, els: true };
     }
     if (/^(files|file manager|open files|edit files|browse files|open a file)$/i.test(l)) {
-        chrome.tabs.create({ url: chrome.runtime.getURL("files.html") });
+        chrome.tabs.create({ url: chrome.runtime.getURL("pages/files.html") });
         return { text: "📁 Opened the file manager. Pick a folder to browse, read, and edit files on this computer — changes save only when you click Save." };
     }
     if (/^(scroll to |go to )?(the )?bottom$|^scroll bottom$/.test(l)) {

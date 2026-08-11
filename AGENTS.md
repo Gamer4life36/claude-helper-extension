@@ -26,7 +26,8 @@ extension actually loads. HTML/CSS/manifest live at the root.
 | `src/files.ts` → `js/files.js` | Local file manager/editor (File System Access API) |
 | `src/popup.ts` → `js/popup.js` | Legacy manual console (kept for reference) |
 | `src/globals.d.ts` | Ambient types for browser APIs not in the TS lib (LanguageModel, Summarizer, showDirectoryPicker) |
-| `*.html`, `css/` | Page markup and extracted stylesheets |
+| `pages/*.html`, `css/` | Page markup (side panel, options, files, popup) and extracted stylesheets |
+| `docs/` | Contributor/tester docs (TESTERS.md) |
 | `icons/` | Extension icons (16/32/48/128) |
 | `server/server.ts` → `server/server.js` | Optional Claude API bridge (Node + `ws`, CommonJS); only runs if the user starts it with their key |
 | `package.json`, `tsconfig.json`, `tsconfig.server.json` | Root project manifest + TS configs |

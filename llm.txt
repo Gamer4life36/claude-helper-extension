@@ -10,7 +10,7 @@ Key facts:
 
 ## Docs
 - [README](https://github.com/Gamer4life36/claude-companion-extension/blob/main/README.md): full overview — abilities & limits, three modes, on-device AI, Skills, safety/privacy, install, comparison to the official Claude for Chrome.
-- [TESTERS](https://github.com/Gamer4life36/claude-companion-extension/blob/main/TESTERS.md): 2-minute install guide and "try these first" commands for non-developers.
+- [TESTERS](https://github.com/Gamer4life36/claude-companion-extension/blob/main/docs/TESTERS.md): 2-minute install guide and "try these first" commands for non-developers.
 - [AGENTS](https://github.com/Gamer4life36/claude-companion-extension/blob/main/AGENTS.md): contributor/agent working rules, repo layout, golden security rules, and release process.
 - [LICENSE](https://github.com/Gamer4life36/claude-companion-extension/blob/main/LICENSE): MIT.
 

@@ -9,7 +9,7 @@ It runs **100% on your machine, for free** — no account, no API key, no cost t
 > **Honest 10-second version:** Free mode is the *hands*, not the *brain*. It reliably does
 > mechanical things — open, search, click, fill forms, summarize, read aloud, translate.
 > It **cannot** reason about a fuzzy goal, write original text, or design something custom —
-> that's the one thing behind Anthropic's paid API. See [README.md](README.md) for the full list.
+> that's the one thing behind Anthropic's paid API. See [README.md](../README.md) for the full list.
 
 ---
 

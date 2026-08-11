@@ -8,7 +8,7 @@
 > trademark of Anthropic, PBC. This is an independent browser tool; it optionally connects to
 > Claude only if *you* supply your own Anthropic API key.
 
-> 🧪 **Testing this?** Start with **[TESTERS.md](TESTERS.md)** — install steps + commands to try.
+> 🧪 **Testing this?** Start with **[TESTERS.md](docs/TESTERS.md)** — install steps + commands to try.
 > Grab the ready-to-load zip from the **[Releases](https://github.com/Gamer4life36/claude-companion-extension/releases)** page.
 
 A personal Chrome extension (Manifest V3). Click the icon → a **chat panel docks to
@@ -208,7 +208,7 @@ Or `git clone` this repo. Then:
 2. **Load unpacked** → select the folder (the one containing `manifest.json`)
 3. Click the icon → the chat docks on the right. Set your policy in **Options**.
 
-Full step-by-step for non-developers: **[TESTERS.md](TESTERS.md)**.
+Full step-by-step for non-developers: **[TESTERS.md](docs/TESTERS.md)**.
 
 ## Optional: 🟢 Claude API via the bridge (needs an API key)
 `server/` runs a local agent loop that relays Claude's tool calls to the extension.
