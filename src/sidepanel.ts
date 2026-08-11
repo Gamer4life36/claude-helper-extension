@@ -1,3 +1,7 @@
+import Fuse from "fuse.js";
+import * as chrono from "chrono-node";
+import TurndownService from "turndown";
+
 const logEl = document.getElementById("log");
 const modeEl = document.getElementById("mode");
 const inp: any = document.getElementById("inp");
@@ -48,17 +52,23 @@ function addMsg(role, text, cls = "") {
 let lastEls = [];
 async function ensureRead() { const r = await exec("read_page", {}); if (r.ok) lastEls = r.page.elements; return lastEls; }
 function scoreEl(x, s, keys) { let sc = 0; for (const key of keys) { const t = (x[key] || "").toLowerCase(); if (t === s) sc = Math.max(sc, 3); else if (t.startsWith(s)) sc = Math.max(sc, 2); else if (t.includes(s)) sc = Math.max(sc, 1); } return sc; }
+function fuzzyRef(items, q, keys) {
+  try { const hit = new Fuse(items, { keys, threshold: 0.4 }).search(q)[0]; return hit ? { ref: (hit.item as any).ref } : null; }
+  catch { return null; }
+}
 function findEl(q) {
   q = q.trim().replace(/^#/, ""); if (/^\d+$/.test(q)) return { ref: q };
   const s = q.toLowerCase();
   const best = lastEls.map((x) => ({ x, sc: scoreEl(x, s, ["label", "text", "name", "placeholder", "href"]) })).filter((o) => o.sc > 0).sort((a, b) => b.sc - a.sc)[0];
-  return best ? { ref: best.x.ref } : null;
+  if (best) return { ref: best.x.ref };
+  return fuzzyRef(lastEls, q, ["label", "text", "name", "placeholder", "href"]);   // typo-tolerant fallback
 }
 function findField(k) {
   const s = k.toLowerCase();
   const inputs = lastEls.filter((x) => ["input", "textarea", "select"].includes(x.tag) && !["submit", "button", "checkbox", "radio", "password"].includes(x.type) && !x.isPassword);
   const best = inputs.map((x) => ({ x, sc: scoreEl(x, s, ["label", "name", "placeholder"]) })).filter((o) => o.sc > 0).sort((a, b) => b.sc - a.sc)[0];
-  return best ? { ref: best.x.ref } : null;
+  if (best) return { ref: best.x.ref };
+  return fuzzyRef(inputs, k, ["label", "name", "placeholder"]);   // typo-tolerant fallback
 }
 
 // ── saved profile (for one-word autofill) ──────────────────────────────────
@@ -101,7 +111,20 @@ function intentUrl(t) {
   if ((m = t.match(/^(?:buy|shop(?:\s+for)?|order|purchase)\s+(.+)/i))) return SEARCH_URLS.amazon + enc(m[1]);
   if ((m = t.match(/^news(?:\s+(?:about|on))?\s+(.+)/i))) return "https://news.google.com/search?q=" + enc(m[1]);
   if ((m = t.match(/^(?:tweet|post to (?:twitter|x))\s+(.+)/i))) return "https://twitter.com/intent/tweet?text=" + enc(m[1]);
-  if ((m = t.match(/^(?:add (?:a )?(?:calendar )?event|schedule|new event|remind me to)\s+(.+)/i))) return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + enc(m[1]);
+  if ((m = t.match(/^(?:add (?:a )?(?:calendar )?event|schedule|new event|remind me to)\s+(.+)/i))) {
+    const raw = m[1];
+    try {
+      const res: any = (chrono.parse(raw) || [])[0];
+      if (res && res.start) {
+        const start = res.start.date();
+        const end = res.end ? res.end.date() : new Date(start.getTime() + 3600000); // default 1h
+        const fmt = (d) => d.toISOString().replace(/[-:]|\.\d{3}/g, "");   // YYYYMMDDTHHMMSSZ (UTC)
+        const title = (raw.slice(0, res.index) + raw.slice(res.index + res.text.length)).replace(/\s{2,}/g, " ").trim() || raw;
+        return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + enc(title) + "&dates=" + fmt(start) + "/" + fmt(end);
+      }
+    } catch {}
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + enc(raw);
+  }
   if ((m = t.match(/^(?:search (?:my )?(?:e-?mail|gmail|inbox)|find (?:e-?mails?|mail))\s+(?:for\s+|from\s+)?(.+)/i))) return "https://mail.google.com/mail/u/0/#search/" + enc(m[1]);
   if ((m = t.match(/^(?:stock|ticker|share price)\s+(?:of\s+|for\s+)?(.+)/i))) return "https://www.google.com/search?q=" + enc(m[1] + " stock");
   if ((m = t.match(/^flights?\s+(?:from\s+)?(.+?)\s+to\s+(.+)$/i))) return "https://www.google.com/travel/flights?q=" + enc("flights from " + m[1] + " to " + m[2]);
@@ -121,10 +144,13 @@ function summarize(text, n = 6) {
   const scored = sentences.map((s, i) => { const words = s.toLowerCase().match(/[a-z']{3,}/g) || []; let sc = words.reduce((a, w) => a + (freq[w] || 0), 0) / (words.length || 1); if (i < 3) sc *= 1.15; return { s: s.trim(), sc, i }; });
   return scored.sort((a, b) => b.sc - a.sc).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.s);
 }
-function readerPage(title, text) {
+function readerPage(title, text, sanitizedHtml = "") {
   const esc = (s) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
-  const paras = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
-  const html = `<!doctype html><meta charset=utf-8><title>${esc(title)}</title><style>body{max-width:720px;margin:40px auto;padding:0 20px;font:18px/1.7 Georgia,serif;background:#faf9f6;color:#222}h1{font:700 30px/1.3 Segoe UI,Arial,sans-serif;margin-bottom:.6em}p{margin:0 0 1em}@media(prefers-color-scheme:dark){body{background:#16181d;color:#dcdcdc}}</style><h1>${esc(title)}</h1>${paras}`;
+  // Prefer the sanitized (DOMPurify) article HTML when present; else the escaped plain-text paragraphs.
+  const body = sanitizedHtml && sanitizedHtml.trim()
+    ? sanitizedHtml
+    : text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
+  const html = `<!doctype html><meta charset=utf-8><title>${esc(title)}</title><style>body{max-width:720px;margin:40px auto;padding:0 20px;font:18px/1.7 Georgia,serif;background:#faf9f6;color:#222}h1{font:700 30px/1.3 Segoe UI,Arial,sans-serif;margin-bottom:.6em}p{margin:0 0 1em}img{max-width:100%;height:auto}a{color:#2563eb}@media(prefers-color-scheme:dark){body{background:#16181d;color:#dcdcdc}a{color:#7fb0ff}}</style><h1>${esc(title)}</h1>${body}`;
   return "data:text/html;charset=utf-8," + encodeURIComponent(html);
 }
 const LOGIN_URLS = {
@@ -227,7 +253,7 @@ SEARCH    search cute cats · open youtube and search lofi · images of neon cit
 PAGE      read · click the Sign in button · type me@x.com into email · submit · press enter
           scroll to bottom · back · forward · reload · find "returns" on the page · list tabs
 READING   summarize · reader view · read aloud / stop reading · translate this page
-          word count · list links · extract emails · extract prices · copy url · copy page text
+          word count · list links · extract emails · extract prices · copy url · copy page text · copy as markdown
 VIEW      dark mode · zoom in · zoom out · reset zoom
 SHOP      add to cart · buy now · checkout   (acts on the current page; sensitive steps ask first)
 FORMS     fill name=John, email=john@x.com, message: hello
@@ -325,7 +351,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
   if (/^(reader|reader view|read this|clean view|declutter|simplify)( (this|the) page)?$/i.test(l)) {
     const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error, blocked: true };
     if ((r.text || "").length < 40) return { text: "Not enough article text here for a reader view." };
-    await exec("open_tab", { url: readerPage(r.title, r.text) }); return { text: "Opened a clean, distraction-free reader view." };
+    await exec("open_tab", { url: readerPage(r.title, r.text, r.html || "") }); return { text: "Opened a clean, distraction-free reader view." };
   }
   // read aloud (local text-to-speech)
   if (/^(read (this )?(aloud|to me)|speak|say this|start reading)$/i.test(l)) { const r = await exec("speak", {}); return { text: r.ok ? "🔊 Reading the page aloud… say “stop reading” to stop." : "🚫 " + r.error, blocked: !r.ok }; }
@@ -348,6 +374,7 @@ async function interpret(text: any, depth: any = 0, opts: any = {}): Promise<any
   if (/^(reset zoom|zoom reset|actual size)$/i.test(l)) { const r = await exec("zoom", { dir: "reset" }); return { text: r.ok ? "🔍 " + r.did : "🚫 " + r.error }; }
   if (/^copy (this )?(url|link|address)$/i.test(l)) { const r = await exec("copy", {}); return { text: r.ok ? "📋 Copied the page URL." : "🚫 " + r.error }; }
   if (/^copy (the )?(page )?text$/i.test(l)) { const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error }; const c = await exec("copy", { text: r.text.slice(0, 100000) }); return { text: c.ok ? "📋 Copied the page text." : "🚫 " + c.error }; }
+  if (/^copy (the )?(page )?(as )?(markdown|md)$/i.test(l)) { const r = await exec("extract", {}); if (!r.ok) return { text: "🚫 " + r.error }; const md = (r.html && r.html.trim()) ? new TurndownService().turndown(r.html) : (r.text || ""); const c = await exec("copy", { text: md.slice(0, 100000) }); return { text: c.ok ? "📋 Copied the page as Markdown." : "🚫 " + c.error }; }
 
   // per-site login shortcuts
   if ((m = t.match(/^(?:log ?in(?:to| to)?|sign ?in(?:to| to)?)\s+(.+)$/i))) {

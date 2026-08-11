@@ -11,11 +11,18 @@
     "bridge": "node server/server.js"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "chrono-node": "^2.10.1",
+    "dompurify": "^3.4.13",
+    "fuse.js": "^7.5.0",
+    "turndown": "^7.2.4",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^20.11.0",
+    "@types/turndown": "^5.0.6",
     "esbuild": "^0.28.2",
     "typescript": "^5.4.0"
   }

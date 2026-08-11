@@ -4,6 +4,9 @@
 // sensitive site with mode "allow" → runs directly (you chose "always allow")
 // otherwise → runs directly
 
+import { Readability } from "@mozilla/readability";
+import DOMPurify from "dompurify";
+
 (() => {
   let policy = null;
 
@@ -96,11 +99,26 @@
       return { ok: true, did: "found", text: (el.innerText || "").trim().slice(0, 120) };
     }
     if (kind === "extract") {
+      // Prefer Readability (better article extraction); fall back to the heuristic below.
+      try {
+        const docClone: any = document.cloneNode(true);
+        const article: any = new Readability(docClone).parse();
+        if (article && (article.textContent || "").trim().length >= 200) {
+          return {
+            ok: true,
+            title: article.title || document.title,
+            url: location.href,
+            text: (article.textContent || "").trim().slice(0, 60000),
+            html: DOMPurify.sanitize(article.content || "")
+          };
+        }
+      } catch {}
+      // fallback: original heuristic (querySelector + strip + innerText)
       const pick = document.querySelector("article, main, [role=main]") || document.body;
       const clone: any = pick.cloneNode(true);
       clone.querySelectorAll("script,style,nav,header,footer,aside,form,noscript,iframe,svg,button").forEach((e) => e.remove());
       const txt = (clone.innerText || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-      return { ok: true, title: document.title, url: location.href, text: txt.slice(0, 60000) };
+      return { ok: true, title: document.title, url: location.href, text: txt.slice(0, 60000), html: "" };
     }
     if (kind === "links") {
       const seen = new Set(), links = [];
